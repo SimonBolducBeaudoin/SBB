@@ -11,9 +11,9 @@ import  time
 import  numpy
 from    math                    import pi
 
-from .Utilities.General_tools import *
+from ..Utilities.General_tools import *
 
-from .Time_quadratues.time_quadratures           import TimeQuad_uint64_t
+from ..Time_quadratures.time_quadratures           import TimeQuad_uint64_t
 
 from Experiment                 import *
 
