@@ -24,11 +24,11 @@ A python module for all the python code I'm devellopping for my lab experiements
 They are place in ../Cpp a repository parallel to SBB/
 
 # Installation
-In cygwin (or any linux environnement)
+In cygwin (or any linux environment)
 ```console
 foo@bar:~$ bash build.sh
 ```
-In anaconda promt (or any python environnement)
+In anaconda promt (or any python environment)
 ```console
 foo@bar:~$ python setup.py install
 ```
