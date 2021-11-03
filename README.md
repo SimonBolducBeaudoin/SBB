@@ -1,5 +1,5 @@
-# SignalProcessing
-C++ methods wrapped with pybind11 for signal processing.
+# SBB
+A python module for all the python code I'm devellopping for my lab experiements.
 
 # Installation
 ## Before installing
@@ -7,13 +7,28 @@ C++ methods wrapped with pybind11 for signal processing.
 - On windows the use of cygwin is recommended
 
 # Dependencies
-- fftw3
-- pybind11
-- mingw (To compile on or for Windows)
+- Other repositories from me
+  - aCorrs-OTF
+  - Convolution
+  - FFT
+  - FFTW_extra
+  - Histograms
+  - Math_extra
+  - Moments_cumulants
+  - Numerical_integration
+  - Omp_extra
+  - Scoped_timer
+  - Special_functions
+  - Time_quadratures
+  - Windowing
+They are place in ../Cpp a repository parallel to SBB/
 
-
-Go to the new SignalProcessing directory and run the installation commands:
+# Installation
+In cygwin (or any linux environnement)
 ```console
 foo@bar:~$ bash build.sh
+```
+In anaconda promt (or any python environnement)
+```console
 foo@bar:~$ python setup.py install
 ```
