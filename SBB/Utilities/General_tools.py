@@ -5,15 +5,14 @@ from    scipy.optimize import leastsq
 import  scipy.odr as odr  
 import  numpy
 
-import scipy.constants as const
-_e      = const.e # Coulomb
-_h      = const.h # Joule second
-_hbar   = const.hbar
-_kb     = const.Boltzmann # J/K (joules per kelvin)
-_c      = const.c # m/s
-del const
+import scipy.constants as C
+_e      = C.e # Coulomb
+_h      = C.h # Joule second
+_hbar   = C.hbar
+_kb     = C.Boltzmann # J/K (joules per kelvin)
+_c      = C.c # m/s
 
-def  BoseEinstein(f,T):
+def BoseEinstein(f,T):
     return 1.0/(numpy.exp(_h*f/(_kb*T))-1.0)
     
 def gamma_to_Z(gamma,Z0=50.0):
@@ -41,8 +40,27 @@ def yes_or_no(question,default_ans='y'):
 # math Utilities #
 ####################
 
+def dB_to_V2_over_V1(dB,R2,R1=50.0):
+    """
+    V2/V1  = 10**(dBm/20) sqrt(R2/R1)
+    """
+    return numpy.sqrt(R2/R1)*10.0**(dB/20.0)
+def dBm_to_V(dBm,R2,R1=50.0):
+    """
+        Returns the peak voltage from dBm
+        
+        dBm  = 10 log10( V2**2  R1 )
+                         ------ --
+                         V1**2  R2
+        V2  = 10**(dBm/20) sqrt(2 R2 V1 )
+        sqrt(2) converts rms to peak, 
+        R1 = 50.0 (in general), 
+        V1 = 0.001[W]
+    """    
+    return numpy.sqrt(2.0*R2*0.001)*10.0**(dBm/20.0)
+
 def lin_to_dB(x):
-    return 10*log10(x)
+    return 10*numpy.log10(x)
 
 def dB_to_lin(x):
     return 10.0**(x/10.0)
@@ -130,10 +148,19 @@ class fit:
         abscisse
     y : np array or array like
         ordonnée/data
+    p0 : np array or array like
+        The starting estimate for the minimization
+        As to behave like a 
     yerr : np array or array like
     weigths : np array or array like
         Weigth attributed for each point. Higher weight means that this data points is more important to fit 
         properly while a weight near 0 means that this data point is uselees
+    
+    
+    Tutorial
+    ----------
+        How to fit multidimensionnal arrays ?
+            
     
     Todos
     ------
@@ -147,8 +174,7 @@ class fit:
     
     Last update notes
     -----------------
-        Added   weights supports
-        Removed odr
+        Removed unecessary self.xFit
     
     Old documentation
     ----------------
@@ -185,26 +211,25 @@ class fit:
     a = odrfit(ValeursDeX, ValeursDeY, ParamètresInitiaux, Fonction, xerr=ErreursEnX, yerr=ErreursEnY)
         
     '''
-    __version__ = {'fit':0.2}
-    def __init__(self,x,y,p0,f,yerr=None,weights=None,verbose=True,npts=1000,fullo=1):
+    __version__ = {'fit':0.3}
+    def __init__(self,x,y,p0,f,yerr=None,weights=None,verbose=True,fullo=1):
         self.x      = numpy.array(x)
-        self.y      = numpy.array(y)
+        self.y      = numpy.array(y).flatten()
         yerr        = yerr      if yerr     is not None else [1.]*self.x.shape[-1]
-        yerr        = numpy.array(yerr)
+        yerr        = numpy.array(yerr).flatten()
         weights     = weights   if weights  is not None else [1.]*self.x.shape[-1]
-        weights     = numpy.array(weights)
+        weights     = numpy.array(weights).flatten()
         self.yerr   = yerr/weights        
-        self.para   = p0         # Paramètres initiaux
-        self.f      = f        # Fonction pour la régression
-        self.fullo = fullo     # 'Full output' de leastsq
+        self.para   = numpy.r_[p0].flatten() # Paramètres initiaux
+        self.f       = f        # Fonction pour la régression
+        self.fullo   = fullo     # 'Full output' de leastsq
         self.verbose = verbose    # Imprime des résultats importants à l'écran
-        self.xFit = numpy.linspace(min(self.x),max(self.x),npts)
     ###########
     # dunders #
     ###########
     def __call__(self,x=None,p=None):
         if x is None:
-            x = self.xFit
+            x = self.x
         if p is None:
             p = self.para
         return self.f(x,p)
@@ -265,7 +290,7 @@ class fit:
         return self.f(x,p)
 class lsqfit(fit):
     def __init__(self,x,y,p0,f,fullo=1,yerr=None,weights=None,verbose=True):
-        fit.__init__(self,x,y,p0,f,fullo=fullo,yerr=yerr,verbose=verbose)
+        fit.__init__(self,x,y,p0,f,fullo=fullo,yerr=yerr,weights=weights,verbose=verbose)
         self.leastsq()    
 
 ####################

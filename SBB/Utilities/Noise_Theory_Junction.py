@@ -120,12 +120,16 @@ def V_th(f,Te=None,epsilon=0.01):
             for which SII_eq = asymtotic value + epsilon
     """
     if Te :
-        cst = numpy.arctanh(1.0/(1.0+epsilon)) # coth(cst) = 1.01
-        return numpy.max(numpy.array([  numpy.abs( cst*2.0*_kb*Te - _h*f ) ,  numpy.abs( cst*2.0*_kb*Te + _h*f ) ]),axis=0)/_e
+        cst = arctanh(1.0/(1.0+epsilon)) # coth(cst) = 1.01
+        #return max(array([  abs( cst*2.0*C.k *Te - C.h*f ) ,  abs( cst*2.0*C.k*Te + C.h*f ) ]),axis=0)/C.e
+        return matplotlib.numpy.max(array([  abs( cst*2.0*C.k *Te - C.h*f ) ,  abs( cst*2.0*C.k*Te + C.h*f ) ]),axis=0)/C.e
     else :
-        return _h*f/_e
+        return C.h*f/C.e
 
 #####################################################################
+
+def compute_nu(V):
+    return C.e*V/C.hbar
 
 def Seq_of_t(tau,Te,R):
     """
