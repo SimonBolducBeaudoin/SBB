@@ -283,9 +283,16 @@ class UndefinedStateError(ExperimentErrors):
 
 class Info(object):
     """
-        TLDR :
+        Contains all the info about a given experiement
+            - Sweeping conditions are contained in a tuple of 1D array. 
+                We assume that the experiement will sweep over the outerproduct of those array, though that behavior might be modified by the user in the experiment class.
+            - n_measures represents the number of time the conditions are repeated in the experiement
+            - Meta_info is a dictionnary contaning meta information about the experiement (anything really)
+                A repetition keys is added to meta_info in case the experiment is repeated by the user (see: Experiment class)
+        
+        Also set a few defaults attributes likes self._verboe and self._test ...
     """
-    __version__     = { 'Info'  : 1.0 }
+    __version__     = { 'Info'  : 1.1 }
     def _set_options(self,options):
         self._options                   = options
         self._verbose                   = options.get('verbose')
@@ -294,13 +301,22 @@ class Info(object):
         self._conditions                = conditions
         if type(conditions[0]) != int :
             raise ConditionsError('n_measures should be int')
-        self._n_measures                = conditions[0]     # The first element of the tuple is the number of repetions
-        self._conditions_core_loop_raw  = conditions[1:]    # The 2nd   element ...          is an list of 1D array    
+        self._n_measures                = conditions[0]         # The first element of the tuple is the number of repetions
+        self._conditions_core_loop_raw  = conditions[1:]        # The 2nd   element ...          is an list of 1D array    
+        self.conditions                 = self.get_conditions() # Public copy of the experimental conditions
+        self.n_measures                 = self.get_n_measures() # Public copy of _n_measure
     def _set_meta_info(self,meta_info):
         self._meta_info                 = meta_info
         self._meta_info['repetitions']  = meta_info['repetitions'] if meta_info.has_key('repetitions') else 0
     def _build_attributes(self):
         pass
+    def get_conditions(self):
+        """
+        Returns a tuple of 1D array corresponding to the experimental conditions
+        """
+        return self._conditions_core_loop_raw
+    def get_n_measures(self):
+        return self._n_measures
 
 class Accretion(object):
     """
@@ -862,116 +878,117 @@ class Lagging_computation(Experiment):
             self._repetition_loop_end(n)
         self._all_loop_close()
 
-class Conditions_logic(object):
+class Cross_Patern_Lagging_computation(Lagging_computation):
     """
-        STATIC ONLY CLASS
-        
-        Methods with first argument beiing self must be called like
-        Conditions_logic.method(object,*args,**kwargs)
-        
-        Manages the logic arround the condition tuples and the
-        experimental conditions
-        
-        It adds some options attributes via the _set_options function
-        and some Vdc attributes via the build_attributes function 
-        
-        Add the folowing options :
-            Interlacing     : reference condition in between each conditions
-            Vdc_antisym : anntisymetrize Vdc  
-        Todos : 
-            - Add the options of interlacing other than every other point
-                ex : every 2nd point ... ref cnd cnd        ref cnd cnd
-                or   every 3rd point ... ref cnd cnd cnd    ref cnd cnd cnd
-        Bugs :
+     LAST MODIFICATION :
+            self._loop_core(...)
+            Modified to take facultative arguments index_it and condition_it the iterators of the core_loop
+            They can be used to modify the core_loop behaviour depending on some interal values of  index_it and condition_it
     """
-    __version__     = { 'Conditions_logic'  : 0.5 }
-    @staticmethod
-    def _set_options(self,**options):
-        self._conditions_options =   {'antisym':options.get('Vdc_antisym') }
-        self._ref_options        =   {'interlacing': options.get('interlacing') , 'no_ref':options.get('no_ref')}
-    @staticmethod
-    def _build_attributes(self):
-        # todos add options for the different scenarios of experiments
-        # Vdc only experiment
-        Vdc                     = self.Vdc
-        conditions_options      = self._conditions_options
-        ref_options             = self._ref_options
-        self._Vdc_antisym       = Conditions_logic.add_antisym            (Vdc               ,**conditions_options )
-        self._Vdc_exp           = Conditions_logic.add_ref_conditions     (self._Vdc_antisym ,**ref_options )
-        self._conditions_exp    = self._Vdc_exp
-        # Vdc and temperature experiment
-        # ....
-    #############
-    # Utilities #
-    #############
-    @staticmethod
-    def add_antisym(Vdc,**sym_options):
-        return numpy.concatenate(([(-1.0)*Vdc[::-1],Vdc])) if sym_options.get('antisym') else Vdc
-    @staticmethod
-    def add_ref_conditions(Vdc,**ref_options):
-        if    ref_options.get('no_ref'): 
-            return Vdc
-        elif  ref_options.get('interlacing'):
-            return Conditions_logic.compute_interlacing(Vdc)
-        else :
-            return Conditions_logic.compute_default_ref(Vdc)
-    @staticmethod
-    def compute_interlacing(Vdc):
-        Vdc_interlaced = numpy.zeros(2*len(Vdc))
-        Vdc_interlaced[1::2] = Vdc
-        return Vdc_interlaced
-    @staticmethod
-    def compute_default_ref(Vdc):
-        return numpy.concatenate(([0],Vdc))
-    #################
-    # Loop behavior #
-    #################
-    @staticmethod
-    def _core_loop_iterator(self):
-        return Experiment._super_enumerate(self._conditions_exp)
-    ######################
-    # Analysis Utilities #
-    ######################
-    @staticmethod
-    def get_conditions_slice(**ref_options):
-        if ref_options.get('no_ref'):
-            return slice(None)
-        elif ref_options.get('interlacing'):
-            return slice(1,None,2)
-        else :
-            return slice(1,None,None)
-    @staticmethod
-    def get_references_slice(**ref_options):
-        if ref_options.get('no_ref'):
-            raise ConditionsError('No references')
-        elif ref_options.get('interlacing'):
-            return slice(0,None,2)
-        else :
-            return [0,]
-    @staticmethod
-    def compute_cumulants_sample(cumulants,swapaxes=None,**ref_options):
-        if swapaxes : 
-            cumulants = cumulants.swapaxes(*swapaxes)
-        slice_r             = Conditions_logic.get_references_slice(**ref_options)
-        slice_c             = Conditions_logic.get_conditions_slice(**ref_options)
-        ref                 = cumulants[...,slice_r]
-        cdn                 = cumulants[...,slice_c]
-        cumulants_sample    = cdn - ref
-        if swapaxes : 
-            cumulants_sample = cumulants_sample.swapaxes(*swapaxes)
-        return cumulants_sample
-    @staticmethod
-    def compute_cumulants_sample_std(cumulants_std,swapaxes=None,**ref_options):
-        if swapaxes : 
-            cumulants_std = cumulants_std.swapaxes(*swapaxes)
-        slice_r             = Conditions_logic.get_references_slice(**ref_options)
-        slice_c             = Conditions_logic.get_conditions_slice(**ref_options)
-        ref                 = cumulants_std[...,slice_r]
-        cdn                 = cumulants_std[...,slice_c]
-        cumulants_sample_std    = cdn + ref
-        if swapaxes : 
-            cumulants_sample_std = cumulants_sample_std.swapaxes(*swapaxes)
-        return cumulants_sample_std
+    class cross_enumerate(object):
+        """
+        An enumerator of the indexes and an iterator goes over the arguments one by one fixing all the other arguments to theirfirst value
+            Example :
+                cross_enumerate([1,2,3],[4,5,6]) will return consecutively
+                    (1,4)
+                    (2,4)
+                    (3,4)
+                    (1,4)
+                    (1,5)
+                    (1,6)
+        """
+        def __init__(self,*args):
+            self.cndtns          = args
+            try :
+                self.dim             = len(args)
+            except :
+                raise Exception("Bad initialization")
+            self.next_idx        = 0
+            self.next_dim        = 0
+            self.idx             = self.next_idx
+            self.current_dim     = self.next_dim
+        def __iter__(self):
+            return self 
+        def gen_idxs(self):
+            index_vec = tuple()
+            for a in self.cndtns :
+                index_vec += ( range(len(a)) , )
+            return index_vec    
+        def __next__(self):
+            self.current_dim    = self.next_dim
+            try :
+                len_current_dim     = len(self.cndtns[self.current_dim]) # wont work is empty tuple()
+            except IndexError:
+                raise StopIteration
+            self.idx            = self.next_idx
+            if self.idx == len_current_dim-1 :   # last element of current dim
+                self.next_idx  = 0
+                self.next_dim += 1
+            else :
+                self.next_idx += 1
+     
+            cndtn = tuple()
+            for i,c in enumerate(self.cndtns):
+                if i == self.current_dim :
+                    cndtn +=(c[self.idx],)
+                else :
+                    cndtn +=(c[0],)
+            return cndtn
+        def next(self):
+            """
+                For compatibility with python 2 iterators
+                see : https://stackoverflow.com/questions/5982817/problems-using-next-method-in-python
+            """
+            return self.__next__()
     
+    # def _loop_core(self,index_tuple,condition_tuple,index_it,condition_it):
+        # """
+        # Loop core is defined in child class
+        # For this class index_it and condition_it might be usefull
+        # Copy paste this method into child class definition raplacing this comment for core_loop behaviour
+        # and leaving commands bellow for log compatibility.
+        # """
+        # super(Croos_Patern_Lagging_computation,self)._loop_core(index_tuple,condition_tuple)
+    
+    class core_iterator(object):
+        """
+        Behaves like zip(idx_it,cdn_it) but is an iterator instead of a list
+        """
+        def __init__(self,idx_it , cdn_it):
+            self.idx_it = idx_it
+            self.cdn_it = cdn_it
+        def __iter__(self):
+            return self    
+        def __next__(self):
+            try :
+                return self.idx_it.next() , self.cdn_it.next()
+            except StopIteration :
+                raise StopIteration
+        def next(self):
+            """
+                For compatibility with python 2 iterators
+                see : https://stackoverflow.com/questions/5982817/problems-using-next-method-in-python
+            """
+            return self.__next__()
+    
+    def _core_loop_iterator(self):
+        it     = self.cross_enumerate(*self._conditions_core_loop_raw)
+        it_idx = self.cross_enumerate(*it.gen_idxs())
+        return it_idx, it
+    
+    def _measurement_loop(self):
+        main_it = self._repetition_loop_iterator()
+        self._all_loop_open()
+        for n  in main_it :
+            index_it , condition_it = self._core_loop_iterator()
+            self._repetition_loop_start(n,condition_it)
+            core_it = self.core_iterator(index_it , condition_it)
+            for (index_tuple, condition_tuple) in core_it :
+                self._loop_core(index_tuple,condition_tuple,index_it,condition_it,n)                                       
+            self._last_loop_core_iteration(n)        
+            self._repetition_loop_end(n)     # This feals like a repetition of self._last_loop_core_iteration is it usefull ?
+        self._all_loop_close()
 
-        
+##################
+# DEPRECATED BELOW 
+##################

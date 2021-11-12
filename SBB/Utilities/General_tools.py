@@ -5,6 +5,8 @@ from    scipy.optimize import leastsq
 import  scipy.odr as odr  
 import  numpy
 
+from SBB.Time_quadratures.time_quadratures           import TimeQuad_uint64_t
+
 import scipy.constants as C
 _e      = C.e # Coulomb
 _h      = C.h # Joule second

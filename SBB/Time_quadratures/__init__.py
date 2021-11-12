@@ -5,8 +5,11 @@ if os.name == "nt" and s not in os.environ["PATH"]:
   os.environ["PATH"] = s+";"+os.environ["PATH"]
   
 from .time_quadratures import * 
+from .TimeQuadrature_helper import*
+import Deprecated
 
 # REMOVING UNDESIRED NAME FROM NAME SPACE
 del s
 del os
 del time_quadratures
+del TimeQuadrature_helper

@@ -1,6 +1,8 @@
 #!/bin/env/python
 #! -*- coding: utf-8 -*-
 
+from numpy import *
+
 class PyhegelWrapperErrors(Exception):
     """
         Base class for pyHegel tools errors
@@ -297,6 +299,14 @@ class Yoko_wrapper(Pyhegel_wrapper):
         
 class Guzik_wrapper(Pyhegel_wrapper):
     """
+        ----------
+        Last update
+        
+        Added dummy config
+        
+        ----------
+        Description
+        
         This is a wrapper arround pyhegel's guzik class
         It doest not fallow pyhegel's convention because I could not solve 
         some issues that arose when trying to write a child class for 
@@ -338,7 +348,6 @@ class Guzik_wrapper(Pyhegel_wrapper):
             
         Knowned bugs :
             - 
-            
         Todos :
             - Add get_or_getcache
             - Can I make _is_debug work in a way that is actually usefull (i.e. reduce repetition in the code and the clutter)?
@@ -347,8 +356,9 @@ class Guzik_wrapper(Pyhegel_wrapper):
         Bugs :
             - See comment In quick historam
     """
-    __version__     =  {'Guzik_wrapper':0.2}
+    __version__     =  {'Guzik_wrapper':0.3}
     __version__.update(Pyhegel_wrapper.__version__)
+    __dummy_config__ = {'conv_resolution':r_[1.0]}
     _gz_instance =   [] 
     counter     =   [0]     
     def __init__(self,**options):
@@ -382,7 +392,7 @@ class Guzik_wrapper(Pyhegel_wrapper):
             return self._gz.config(channels,n_S_ch,bits_16,gain_dB,offset,equalizer_en,force_slower_sampling,ext_ref,_hdr_func)
         else :
             self._dummy_data = zeros((1,n_S_ch),dtype='int16') # this doesn't cover all the corner cases
-            return None
+            return Guzik_wrapper.__dummy_config__
     def read_config(self):
         if not self._debug : 
             return self._gz._gsa_data_res_arr[0].common.ampl_resolution
@@ -415,7 +425,6 @@ class Guzik_wrapper(Pyhegel_wrapper):
         plot(arange(-2.0**15,2.0**15),hist.get())
         xlim(0,1023)
 
-   
 class PSG_wrapper(Pyhegel_wrapper):
     """
         Todos :

@@ -1,8 +1,8 @@
 """
 This is a test docstring
 """
-import SBB.acorrs_otf as acorrs_otf
+import SBB.AutoCorr as AutoCorr
 import SBB.Histograms as Histograms
 import SBB.Time_quadratures as Time_quadratures
-from SBB.Utilities import *
-from SBB.Pyhegel_extra import *
+import SBB.Utilities as Utilities
+import SBB.Pyhegel_extra as Pyhegel_extra
