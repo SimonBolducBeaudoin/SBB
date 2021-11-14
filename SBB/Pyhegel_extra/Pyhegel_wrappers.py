@@ -265,22 +265,24 @@ class Yoko_wrapper(Pyhegel_wrapper):
         self._debug  = options.get('debug')
     def get(self):
         if self._debug :
+            print "get Yoko : {:0.2f}[V]".format(self._V_dummy)
             return self._V_dummy
         else :
             return get(self._yoko)
     def set(self,V):
         if self._debug :
             self._V_dummy = V
+            print "set Yoko : {:0.2f}[V]".format(V)
         else :
             set(self._yoko,V)
     def set_output(self,booleen):
         if self._debug :
-            pass
+            print "set Yoko outpout : {}".format(booleen)
         else :
             set(self._yoko.output_en, booleen)
     def set_range(self,val):
         if self._debug :
-            pass
+            print "set Yoko range : {}".format(val)
         else :
             set(self._yoko.range,val)
     """
@@ -407,6 +409,7 @@ class Guzik_wrapper(Pyhegel_wrapper):
         if not self._debug : 
             return get(self._gz)
         else :
+            print "get Guzik "
             return self._dummy_data[0,:]
     def get_pyhegel_instance(self):
         return self._gz
@@ -459,12 +462,12 @@ class PSG_wrapper(Pyhegel_wrapper):
             return (f,dbm)
     def set_freq(self,f):
         if self._debug :
-            pass
+            print "set PSG : {:0.2f}[GHz]".format(f*1.e-9)
         else :
             set(self._psg.freq_cw,f)
     def set_ampl(self,dBm):
         if self._debug :
-            pass
+            print "set PSG : {:0.2f}[dBm]".format(dBm)
         else :
             set(self._psg.ampl,dBm)           
     def set_output(self,booleen):

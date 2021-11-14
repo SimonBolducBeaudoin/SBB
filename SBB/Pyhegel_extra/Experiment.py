@@ -194,31 +194,6 @@ class logger(object):
             s_tuple += cnd_frmt.format(t) + ','
         s_tuple += ')'
         self._print(s_tuple + '\t' + s)
-
-class logger_aqc_and_compute(logger):
-    """
-        A logger with default Aquisition and Computing events
-    """
-    __version__     = { 'logger_aqc_and_compute'  : 0.2 }
-    __version__.update(logger.__version__)   
-    def __init__(self,time_estimates,*arg,**log_dict):
-        if log_dict :
-            super(logger_aqc_and_compute,self).__init__(time_estimates,log_dict)
-        else :
-            n_measures  = arg[0]
-            l_Vdc       = arg[1]
-            l_data      = arg[2]
-            _aqc_and_compute_log       = \
-            {
-            'loop_sizes'    : ( n_measures , l_Vdc ),
-            'events'        : 
-                            [
-                                "Acquisition : {:04.2F} [s]", 
-                                "Computing : {:04.2F} [s] "
-                            ],
-            'rate'          : ( l_data*1.0e-9 ,"Rate : {:04.2F} [GSa/s] " )
-            }
-            super(logger_aqc_and_compute,self).__init__(time_estimates,_aqc_and_compute_log)
     
 class ExperimentErrors(Exception):
     """

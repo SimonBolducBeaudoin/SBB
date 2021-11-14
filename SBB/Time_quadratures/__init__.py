@@ -6,7 +6,7 @@ if os.name == "nt" and s not in os.environ["PATH"]:
   
 from .time_quadratures import * 
 from .TimeQuadrature_helper import*
-import Deprecated
+from SBB.Time_quadratures import Deprecated
 
 # REMOVING UNDESIRED NAME FROM NAME SPACE
 del s

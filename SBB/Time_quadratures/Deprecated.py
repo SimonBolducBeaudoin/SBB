@@ -1,9 +1,13 @@
 #!/bin/env/python
 #! -*- coding: utf-8 -*-
 
-from SBB.Pyhegel_extra import Info, Lagging_computation, Analysis,logger_aqc_and_compute
-from SBB.Pyhegel_extra import Yoko_wrapper,Guzik_wrapper
+from SBB.Pyhegel_extra.Experiment import Info, Lagging_computation, Analysis
+from SBB.Pyhegel_extra.Deprecated import logger_acq_and_compute
+from SBB.Pyhegel_extra.Pyhegel_wrappers import Yoko_wrapper,Guzik_wrapper
 from SBB.Pyhegel_extra.Deprecated import Conditions_logic,Three_points_polarisation
+from SBB.Utilities.General_tools import find_nearest_A_to_a
+from SBB.Time_quadratures.time_quadratures import TimeQuad_uint64_t
+
 import numpy
 
 class Quads_helper(object):
@@ -239,7 +243,7 @@ class Quads_helper(object):
         return Y/(sum)
     @staticmethod
     def Gaussian (x,mu=0.0,sigma=1.0) :
-        return (1.0/(sigma*numpy.sqrt(2.0*pi))) * numpy.exp( (-(x-mu)**2)/(2.0*sigma**2) )
+        return (1.0/(sigma*numpy.sqrt(2.0*numpy.pi))) * numpy.exp( (-(x-mu)**2)/(2.0*sigma**2) )
     @staticmethod
     def Gaussian_filter_normalized(f,df,l_kernel,dt) :
         """
@@ -261,7 +265,7 @@ class Quads_helper(object):
         Y = numpy.empty( l_hc , dtype = complex , order='C') 
         x_f = numpy.fft.rfftfreq(l_kernel , dt)
         for i in range( l_hc ) :
-            Y[i] =  (df1*numpy.sqrt(2.0*pi))*Quads_helper.Gaussian ( x_f[i] , f1 , df1 ) + (df2*numpy.sqrt(2.0*pi))*Quads_helper.Gaussian(x_f[i] , f2 , df2) 
+            Y[i] =  (df1*numpy.sqrt(2.0*numpy.pi))*Quads_helper.Gaussian ( x_f[i] , f1 , df1 ) + (df2*numpy.sqrt(2.0*numpy.pi))*Quads_helper.Gaussian(x_f[i] , f2 , df2) 
         Delta_f = (x_f[1]-x_f[0])    
         Y = Quads_helper.Wave_function_of_f_normalization(Y,Delta_f)
         return Y   
@@ -908,7 +912,7 @@ class QsVsVdc_exp(QsVsVdc_info,Lagging_computation):
     __version__     = { 'QsVsVdc_exp'  : 1.2 }
     __version__.update(QsVsVdc_info.__version__)
     __version__.update(Lagging_computation.__version__)
-    __version__.update(logger_aqc_and_compute.__version__)      # Has an instance of this logger
+    __version__.update(logger_acq_and_compute.__version__)      # Has an instance of this logger
     __version__.update(Quads_helper.__version__)
     __version__.update(Yoko_wrapper.__version__)
     __version__.update(Guzik_wrapper.__version__)
@@ -921,7 +925,7 @@ class QsVsVdc_exp(QsVsVdc_info,Lagging_computation):
         l_data                          = self._l_data
         tmp                             = self._estimated_time_per_loop 
         times_estimate                  = (self._n_measures*tmp,tmp)
-        self._log                       = logger_aqc_and_compute(times_estimate,n,l_Vdc,l_data) 
+        self._log                       = logger_acq_and_compute(times_estimate,n,l_Vdc,l_data) 
     def _init_objects(self):
         self._init_TimeQuad()
         self._init_Histograms()

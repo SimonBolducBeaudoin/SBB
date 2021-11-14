@@ -7,4 +7,6 @@ if os.name == "nt" and s not in os.environ["PATH"]:
 from .acorrs_otf import *
 from AutoCorr_helper import *
 
+import Deprecated
+
 del AutoCorr_helper
