@@ -2,8 +2,10 @@
 #! -*- coding: utf-8 -*-
 
 from numpy import *
+import time
 from pyHegel import *
 from pyHegel.commands import set,get
+
 
 class PyhegelWrapperErrors(Exception):
     """

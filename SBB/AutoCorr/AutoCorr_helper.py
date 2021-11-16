@@ -2,8 +2,8 @@
 #! -*- coding: utf-8 -*-
 
 import numpy
-from ..Utilities.General_tools import symetrize,fourier_transform,find_nearest_A_to_a
-from ..Utilities import Noise_Theory_Junction 
+from SBB.Utilities.General_tools import symetrize,fourier_transform,find_nearest_A_to_a
+from SBB.Utilities import Noise_Theory_Junction 
 
 def binV2_to_A2(S2,R_acq,mv_per_bin):
     """
@@ -34,7 +34,7 @@ def window_after_2ns(S2):
         return out
 
 def SII_dc_of_t_to_spectrum(S2,dt):
-    S2_windowed       = window_after_2ns(S2_A2)
+    S2_windowed       = window_after_2ns(S2)
     S2_sym            = symetrize (S2_windowed)
     return numpy.abs(fourier_transform(S2_sym,dt))
     
