@@ -1,11 +1,18 @@
 #!/bin/env/python
 #! -*- coding: utf-8 -*-
 
+"""
+    Pyhegel_wrapper should only work in a pyHegel instance
+"""
+
 from numpy import *
 import time
-from pyHegel import *
-from pyHegel.commands import set,get
+import os
 
+if os.environ.has_key('QT_API') :
+    # pyHegel will not load properly if Qt is not active
+    from pyHegel import instruments
+    from pyHegel.commands import set,get
 
 class PyhegelWrapperErrors(Exception):
     """

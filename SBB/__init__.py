@@ -1,6 +1,6 @@
-"""
-This is a test docstring
-"""
+#!/bin/env/python
+#! -*- coding: utf-8 -*-
+
 import SBB.AutoCorr         as AutoCorr
 import SBB.Histograms       as Histograms
 import SBB.Time_quadratures as Time_quadratures
