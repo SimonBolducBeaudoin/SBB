@@ -374,6 +374,22 @@ def compute_ns(cumulants_sample,axis=0):
     ns[2,...]   = (2.0/3.0)*C4 +     n**2 + n
     return ns.swapaxes(axis,0)
 
+def fit_of_C4(C4_s,C2_3_s,V_th_slice,axis=-1,p0=(1.0,),verbose=False):
+    """
+        C4,d = C4,m(V) - C4,m(0) = C4,s + K( C2,m**3(V) - C2,m**3(0) )
+        Assuming C4_s is zero where V_th_slice == True
+        C4_del = K*C2_3_del (see model)
+        
+        axis is the axis of the conditions ex: vdc or vac ...
+    """
+    C4_del      = C4_s  [V_th_slice]
+    C2_3_del    = C2_3_s[V_th_slice]
+    def model(x,p):
+        p0 = p[0]
+        return p0*x
+    f = lsqfit(C2_3_del,C4_del,p0,model,verbose=verbose)
+    return f
+
 def compute_fano(dn2,n):
     return dn2/n
 
