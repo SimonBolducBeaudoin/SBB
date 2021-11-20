@@ -6,3 +6,6 @@ include SBB/Time_quadratures/time_quadratures.pyd
 
 include SBB/Histograms/histograms.so
 include SBB/Histograms/histograms.pyd
+
+include SBB/Omp_extra/omp_extra.so
+include SBB/Omp_extra/omp_extra.pyd

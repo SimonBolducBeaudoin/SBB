@@ -2,7 +2,7 @@
 #! -*- coding: utf-8 -*-
 
 import numpy
-from SBB.Pyhegel_extra.Experiment import logger
+from SBB.Pyhegel_extra.Experiment import logger,Experiment
 
 class logger_acq_and_compute(logger):
     """
@@ -179,3 +179,28 @@ class Conditions_logic(object):
         if swapaxes : 
             cumulants_sample_std = cumulants_sample_std.swapaxes(*swapaxes)
         return cumulants_sample_std
+
+def _gen_dict_helper(d):
+    out = dict()
+    for k,i in d.items():
+        if i is not None:
+            out.update({k:i})
+    return out
+
+def gen_quads_info(l_kernel,kernel_conf=None,alpha=None,filters_info=None):
+    l_kernel    = int(l_kernel)
+    l_hc        = l_kernel/2 + 1 
+    quads_info  = {'l_kernel':l_kernel,'l_hc':l_hc,'kernel_conf':kernel_conf,'alpha':alpha,'filters_info':filters_info}
+    return _gen_dict_helper(quads_info)
+ 
+def gen_aqc_info(l_data,dt,gz_gain_dB=None,mv_per_bin=None):
+    return _gen_dict_helper({'l_data':l_data,'dt':dt,'gz_gain_dB':gz_gain_dB,'mv_per_bin':mv_per_bin})
+    
+def gen_compute_info(n_threads,l_fft=None):
+    return _gen_dict_helper({'n_threads':n_threads,'l_fft':l_fft})
+    
+def gen_circuit_info(R_jct,R_1M,R_tl=None,g=None,V_th=None):
+    return _gen_dict_helper({'R_jct':R_jct,'R_1M':R_1M,'R_tl':R_tl,'g':g,'V_th':V_th})
+ 
+def gen_hist_info(nb_of_bin,max):
+    return _gen_dict_helper({'nb_of_bin':nb_of_bin,'max':max})
