@@ -6,16 +6,20 @@ import numpy
 import itertools
 import os
 
-# DEPRECATED LINE from General_tools  import compute_differential
+import pkg_resources  # part of setuptools
+_SBB_version = pkg_resources.require("SBB")[0].version
+del pkg_resources
 
-#############
-# Statics   #
-#############
-import scipy.constants as const
-_e      = const.e # Coulomb
-_h      = const.h # Joule second
-_kb     = const.Boltzmann # J/K (joules per kelvin)
-del const
+import git
+repo = git.Repo(search_parent_directories=False)
+sha = repo.head.object.hexsha
+del git
+print "SBB version number : {}".format(_SBB_version)
+print "Repository : {}".format(repo)
+print "Hash : {}".format(sha)
+
+
+# DEPRECATED LINE from General_tools  import compute_differential
 
 ####################
 #  Utilities #
@@ -33,7 +37,6 @@ def dict_to_attr(self,dict,user_key_to_attribute_key={}):
 # Pyhegel Utilities #
 ####################
 class timer(object):
-    __version__ = {'timer':0.2}
     def __init__(self,size=1):
         self.timer = numpy.zeros((2,size))
     def watch(self):
@@ -79,8 +82,6 @@ class logger(object):
           Bugs :
             -
     """   
-    __version__     = { 'logger'  : 0.3 }
-    __version__.update(timer.__version__)  
  
     _default_log = \
     {
