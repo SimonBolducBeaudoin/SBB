@@ -9,11 +9,14 @@ from numpy import *
 import time
 import os
 
-if os.environ.has_key('QT_API') :
+#if os.environ.has_key('QT_API') :
+try :
     # pyHegel will not load properly if Qt is not active
     from pyHegel import instruments
     from pyHegel.commands import set,get
-
+except ImportError :
+    pass
+    
 class PyhegelWrapperErrors(Exception):
     """
         Base class for pyHegel tools errors
