@@ -7,16 +7,16 @@ import itertools
 import os
 
 import pkg_resources  # part of setuptools
-_SBB_version = pkg_resources.require("SBB")[0].version
+__SBB_version__ = {'SBB':pkg_resources.require("SBB")[0].version}
 del pkg_resources
 
-import git
-repo = git.Repo(search_parent_directories=False)
-sha = repo.head.object.hexsha
-del git
-print "SBB version number : {}".format(_SBB_version)
-print "Repository : {}".format(repo)
-print "Hash : {}".format(sha)
+# import git
+# repo = git.Repo(search_parent_directories=False)
+# sha = repo.head.object.hexsha
+# del git
+# print "SBB version number : {}".format(__SBB_version__)
+# print "Repository : {}".format(repo)
+# print "Hash : {}".format(sha)
 
 
 # DEPRECATED LINE from General_tools  import compute_differential
@@ -268,7 +268,6 @@ class Info(object):
         
         Also set a few defaults attributes likes self._verboe and self._test ...
     """
-    __version__     = { 'Info'  : 1.1 }
     def _set_options(self,options):
         self._options                   = options
         self._verbose                   = options.get('verbose')
@@ -305,7 +304,6 @@ class Accretion(object):
             Dictionnary therefore must be loaded in a particular way and list and tuples are converted
             to np_array.
     """
-    __version__     = { 'Accretion'  : 1.0 }
     @classmethod
     def description(cls):
         print cls.__doc__
@@ -342,7 +340,7 @@ class Accretion(object):
         time_stamp                  = time.strftime('%y%m%d-%H%M%S') # File name will correspond to when the experiment ended
         filename                    = prefix+'{}.npz'.format(time_stamp)
         to_save                     = self._data
-        to_save['_versions_saved']  = self.__version__
+        to_save['_versions_saved']  = __SBB_version__
         numpy.savez_compressed(os.path.join(path_save,filename),**to_save)
         print "Data saved \n \t folder : {} \n \t {}".format(path_save,filename) 
     def _load_data_dict(self,data_dict):
@@ -379,7 +377,6 @@ class Analysis(Info):
             Dictionnary therefore must be loaded in a particular way and list and tuples are converted
             to np_array.
     """
-    __version__     = { 'Analysis'  : 1.0 }
     @classmethod
     def description(cls):
         print cls.__doc__
@@ -444,7 +441,7 @@ class Analysis(Info):
         time_stamp                  = time.strftime('%y%m%d-%H%M%S') # File name will correspond to when the experiment ended
         filename                    = prefix+'{}.npz'.format(time_stamp)
         to_save                     = self._data
-        to_save['_versions_saved']  = self.__version__
+        to_save['_versions_saved']  = self.__SBB_version__
         to_save['_options']         = self._options
         to_save['_conditions']      = self._conditions
         to_save['_meta_info']       = self._meta_info
@@ -458,7 +455,7 @@ class Analysis(Info):
             versions_saved = self._versions_saved
         except AttributeError :
             versions_saved = None
-        version = self.__version__
+        version = self.__SBB_version__
         try :
             version.pop(type(self).__name__)
             version.pop(Analysis.__name__)
@@ -617,8 +614,6 @@ class Experiment(Analysis):
         Bugs :
             - After constructing from data structure the destructor stills try to clean devices ?
     """
-    __version__     = { 'Experiment'  : 1.0 }
-    __version__.update(logger.__version__)
     def __init__(self,conditions,devices,meta_info=None,**options):
         """
             - conditions    : example == (n_measures, nd_array_core_loop_cnds) 
@@ -774,7 +769,7 @@ class Experiment(Analysis):
             versions_saved = self._versions_saved
         except AttributeError :
             versions_saved = None
-        version = self.__version__
+        version = self.__SBB_version__
         if not ( version == versions_saved ):
             VersionsWarning.warn(version,versions_saved)
     @classmethod
@@ -819,8 +814,6 @@ class Lagging_computation(Experiment):
             - 
         Bugs :
     """
-    __version__     = { 'Lagging_computation'  : 0.4 }
-    __version__.update(Experiment.__version__)
     #################
     # Loop behavior #
     #################
