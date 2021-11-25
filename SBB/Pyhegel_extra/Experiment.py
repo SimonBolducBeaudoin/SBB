@@ -855,11 +855,18 @@ class Lagging_computation(Experiment):
 
 class Cross_Patern_Lagging_computation(Lagging_computation):
     """
-     LAST MODIFICATION :
-            self._loop_core(...)
-            Modified to take facultative arguments index_it and condition_it the iterators of the core_loop
-            They can be used to modify the core_loop behaviour depending on some interal values of  index_it and condition_it
+    Sweeps on a cross like (N dimensionnal cross) patern instead of a matrix keeping all other constant (to a certain reference value)
+    By default this reference values for each axis is set to be the 0'th index of each axis but can be set by ref_idxs  (in meta info)
+    
+    LAST MODIFICATION :
+        Added referencing options in cross_enumerate
+        Added behaviour in build attributes to catch the ref_idxs meta_info
+        
     """
+    
+    def _build_attributes(self):
+        self._ref_idxs = self._meta_info['ref_idxs'] if self._meta_info.has_key('ref_idxs') else numpy.zeros((len(self._conditions_core_loop_raw),),dtype=int)
+    
     class cross_enumerate(object):
         """
         An enumerator of the indexes and an iterator goes over the arguments one by one fixing all the other arguments to theirfirst value
@@ -871,11 +878,29 @@ class Cross_Patern_Lagging_computation(Lagging_computation):
                     (1,4)
                     (1,5)
                     (1,6)
+            If the kwarg ref_idxs exists its elements are use as the index for the reference cases
+            Example :
+                ref_idxs = (1,2)
+                    (1,6)
+                    (2,6)
+                    (3,6)
+                    (2,4)
+                    (2,5)
+                    (2,6)
+            by default the ref_idxs numpy.zeros( len(args) )
         """
-        def __init__(self,*args):
+        def __init__(self,*args,**kwargs):
             self.cndtns          = args
             try :
                 self.dim             = len(args)
+            except :
+                raise Exception("Bad initialization")
+            self.ref_idxs = numpy.r_[kwargs['ref_idxs']].astype(int) if kwargs.has_key('ref_idxs') else numpy.zeros((self.dim,),dtype=int)
+            try :
+                if self.ref_idxs.shape != (self.dim,):
+                    raise Exception
+                else :
+                    pass 
             except :
                 raise Exception("Bad initialization")
             self.next_idx        = 0
@@ -901,13 +926,12 @@ class Cross_Patern_Lagging_computation(Lagging_computation):
                 self.next_dim += 1
             else :
                 self.next_idx += 1
-     
             cndtn = tuple()
             for i,c in enumerate(self.cndtns):
                 if i == self.current_dim :
                     cndtn +=(c[self.idx],)
                 else :
-                    cndtn +=(c[0],)
+                    cndtn +=(c[self.ref_idxs[i]],)
             return cndtn
         def next(self):
             """
@@ -915,15 +939,6 @@ class Cross_Patern_Lagging_computation(Lagging_computation):
                 see : https://stackoverflow.com/questions/5982817/problems-using-next-method-in-python
             """
             return self.__next__()
-    
-    # def _loop_core(self,index_tuple,condition_tuple,index_it,condition_it):
-        # """
-        # Loop core is defined in child class
-        # For this class index_it and condition_it might be usefull
-        # Copy paste this method into child class definition raplacing this comment for core_loop behaviour
-        # and leaving commands bellow for log compatibility.
-        # """
-        # super(Croos_Patern_Lagging_computation,self)._loop_core(index_tuple,condition_tuple)
     
     class core_iterator(object):
         """
@@ -947,7 +962,7 @@ class Cross_Patern_Lagging_computation(Lagging_computation):
             return self.__next__()
     
     def _core_loop_iterator(self):
-        it     = self.cross_enumerate(*self._conditions_core_loop_raw)
+        it     = self.cross_enumerate(*self._conditions_core_loop_raw,ref_idxs=self._ref_idxs)
         it_idx = self.cross_enumerate(*it.gen_idxs())
         return it_idx, it
     
@@ -963,7 +978,3 @@ class Cross_Patern_Lagging_computation(Lagging_computation):
             self._last_loop_core_iteration(n)        
             self._repetition_loop_end(n)     # This feals like a repetition of self._last_loop_core_iteration is it usefull ?
         self._all_loop_close()
-
-##################
-# DEPRECATED BELOW 
-##################
