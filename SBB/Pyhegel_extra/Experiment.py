@@ -6,17 +6,6 @@ import numpy
 import itertools
 import os
 
-# DEPRECATED LINE from General_tools  import compute_differential
-
-#############
-# Statics   #
-#############
-import scipy.constants as const
-_e      = const.e # Coulomb
-_h      = const.h # Joule second
-_kb     = const.Boltzmann # J/K (joules per kelvin)
-del const
-
 ####################
 #  Utilities #
 ####################
