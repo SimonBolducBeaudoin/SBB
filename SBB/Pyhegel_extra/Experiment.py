@@ -46,33 +46,16 @@ class timer(object):
         return self.timer[1,:]
         
 class logger(object):
-    """
-        Times an experiment 
-        and print events and progress
+    """ 
+        A simple log for simple experiments
+            Times the progression
+            Prints the progression the de command line
+            FUTUR : (Optional) saves the log in a txt file
+        Times an experiment, prints events and progress
         begin
             loop
                 loop_events
         end
-        
-        log_dict (example)
-        {
-            'open'          : 'Lauching experiment'
-            'close'         : 'Experience over : \n \t Estimated time [s] {:04.2F} \n \t Real time {:04.2F} [s]'
-            'loop_sizes'    : (1st_loop,2nd_loop,...)
-            'loop'          : 'Progess {:03}/{:03d} \t last_loop time: {:04.2F} [s] '
-            'events'        : (None by default)
-                            : (format example) # The first parameter is an index for the event since dictionnary are now guarentied to preserve order
-                                {
-                                    "Event_name" : "format_ready_str"
-                                }
-                            : (example) 
-                                {
-                                "Aquisition": "Acquisition : {:04.2F} [s]", 
-                                "Computing" : "Computing : {:04.2F} [s] "
-                                }
-            'rate'          : ( l_data*1.0e-9.0 ,"Rate : {:04.2F} [GSa/s] " ),
-        }
-        times_est   = (experiment_time,loop_time)
         
         Todos :
             - Modifiy the _print() to save (or not) the string of log into a file
@@ -82,51 +65,111 @@ class logger(object):
     __version__     = { 'logger'  : 0.3 }
     __version__.update(timer.__version__)  
  
-    _default_log = \
+    __default__ = \
     {
         'loop_sizes': (1,),
         'open'      : 'Lauching experiment' ,
-        'close'     : 'Experience over : \n \t Estimated time [s] {:04.2F} \n \t Real time {:04.2F} [s]' ,
+        'close'     : 'Experience over : \n \t Real time {:04.2F} [s]' ,
         'loop'      : 'Progess {:03}/{:03d} \t last_loop time: {:04.2F} [s]' ,
-        'conditions': '{:04.1F}'
+        'conditions': ('{: .1f}',) ,
+        'events'    : {'event':'{: .1f}'},
+        'indent'    : 0,
+        'rate'      : None,
     }
-    _allowed__user_key = ('loop_sizes','open','close','loop','rate','events')
-    _user_key_to_attribute_key = \
-    {
-        'loop_sizes'    : '_loop_sizes'  ,
-        'open'          : '_open_str'    ,
-        'close'         : '_close_frmt'  ,
-        'loop'          : '_loop_frmt'   ,
-        'is_rate'       : '_is_rate'     ,
-        'rate'          : '_event_rate'  ,
-        'is_event'      : '_is_event'    ,
-        'events'        : '_events'      ,
-        'conditions'    : '_conditions_frmt'
-    }
-    _default_time_est = (1.0,)
-    def __init__( self, time_estimates , log_dict , **options):
-        self._attributes_instanciation(time_estimates,log_dict)
-        self.logger_indent      = options['indent'] if options.has_key('indent') else 0
-    def indent(self,n):
-        self.logger_indent = n
-    def _print(self,s):
-        ss =''
-        for i in range(self.logger_indent) :
-            ss += '\t'
-        print ss + s
-    def _attributes_instanciation(self,time_estimates , log_dict):
-        if log_dict == () or log_dict == None : # Set the default log
-            dict_to_attr(self,self._default_log,self._user_key_to_attribute_key)
+    
+    def __init__( self,time_estimates=None , log_dict=None ,
+        loop_sizes  =__default__['loop_sizes'] ,
+        open        =__default__['open'] ,
+        close       =__default__['close'] ,
+        loop        =__default__['loop'] ,
+        conditions  =__default__['conditions'] ,
+        events      =__default__['events'] ,
+        indent      =__default__['indent'] ,
+        rate        =__default__['rate'],
+        ):
+        """
+            This should only be used with kwargs, args are left here from compatibility with old code only ...
+            
+            # should not be used for compatibility with old code only
+            # Indents the whole log
+            # Option to print rate (EX: GSa/s) for each events
+        """    
+        deprecated_args         = (time_estimates,log_dict)
+        self._loop_sizes        = loop_sizes
+        self._open_str          = open
+        self._close_frmt        = close
+        self._loop_frmt         = loop
+        self._is_event          = True             # DEPRECATED : is now always true but I did'nt bother to make the changes outside of __init__
+        self._events_dict       = events
+        self._conditions_frmt   = conditions
+        self.logger_indent      = indent
+        if rate :
+            self._is_rate       = True
+            self._event_rate    = rate
         else :
-            self._log_dict_to_attributes(log_dict,self._user_key_to_attribute_key)
-        self._event_attributes_instanciation(log_dict)
-        self._set_time_estimate(time_estimates)
-    def _log_dict_to_attributes(self,log_dict,conv):
-        for key in self._default_log :  # set the attributes of the given log_dict or the default one when it doens't exist
-            setattr(self,conv[key],log_dict[key]) if key in log_dict else setattr(self,conv[key],self._default_log[key])
-    def _set_time_estimate(self,time_estimates):
-        self.time_estimate =  self._default_time_est if  time_estimates  == () or time_estimates == None else time_estimates
-    def _event_attributes_instanciation(self,log_dict):
+            self._is_rate       = False
+        #Timer initialisation
+        ## Whole experiment timer
+        self._experiment = timer()
+        self._experiment.tic()
+        self._experiment.toc()
+        ## Loop timer
+        self._loop       = timer(len(self._loop_sizes))
+        self._loop.tic()
+        self._loop.toc()
+        ## Event(s) time
+        self._events_len  = len(self._events_dict)
+        self._events      = timer(self._events_len)
+        for i in range(self._events_len):
+            self._events.tic(i)
+            self._events.toc(i) 
+        ##############################################################
+        if (deprecated_args[1]): # reading only the second element because time_estimate as been removed anyway
+            self._deprecated_init(*deprecated_args,indent=indent)
+                      
+    def _deprecated_init(self,*deprecated_args,**options) :
+        """
+        This will eventually be deleted
+        Should not be used for compatibility with old code only
+        """
+        
+        _default_log = \
+        {
+            'loop_sizes': (1,),
+            'open'      : 'Lauching experiment' ,
+            'close'     : 'Experience over : \n \t Real time {:04.2F} [s]' ,
+            'loop'      : 'Progess {:03}/{:03d} \t last_loop time: {:04.2F} [s]' ,
+            'conditions': '{:04.1F}'
+            
+        }
+        _user_key_to_attribute_key = \
+        {
+            'loop_sizes'    : '_loop_sizes'  ,
+            'open'          : '_open_str'    ,
+            'close'         : '_close_frmt'  ,
+            'loop'          : '_loop_frmt'   ,
+            'is_rate'       : '_is_rate'     ,
+            'rate'          : '_event_rate'  ,
+            'is_event'      : '_is_event'    ,
+            'events'        : '_events'      ,
+            'conditions'    : '_conditions_frmt'
+        }
+        _default_time_est = (1.0,)
+        
+        def _log_dict_to_attributes(self,log_dict,conv):
+            for key in self._default_log :  # set the attributes of the given log_dict or the default one when it doens't exist
+                setattr(self,conv[key],log_dict[key]) if key in log_dict else setattr(self,conv[key],self._default_log[key])
+                
+        def _set_time_estimate(self,time_estimates):
+            self.time_estimate =  self._default_time_est if  time_estimates  == () or time_estimates == None else time_estimates
+        
+        time_estimates , log_dict = deprecated_args
+        
+        if log_dict == () or log_dict == None : # Set the default log
+            dict_to_attr(self,self._default_log,_user_key_to_attribute_key)
+        else :
+            _log_dict_to_attributes(self,log_dict,_user_key_to_attribute_key)
+        
         self._is_rate    =   'rate' in log_dict
         if self._is_rate :
             self._event_rate = log_dict['rate']
@@ -136,14 +179,26 @@ class logger(object):
         self._loop       = timer(len(self._loop_sizes))
         self._loop.tic()
         self._loop.toc()
-        self._is_event   = 'events' in log_dict
+        self._is_event   = log_dict.has_key('events')
         if self._is_event :
             self._events_dict = log_dict['events']
             self._events_len  = len(self._events_dict)
             self._events      = timer(self._events_len)
-            self._events.tic(0)
-            self._events.toc(0)
-            self._conditions_frmt = log_dict['conditions_frmt'] if log_dict.has_key('conditions_frmt') else ('{: .1f}',)  
+        else :
+            self
+        self._events.tic(0)
+        self._events.toc(0)
+        self._conditions_frmt = log_dict['conditions_frmt'] if log_dict.has_key('conditions_frmt') else ('{: .1f}',)  
+        _set_time_estimate(self.time_estimates)
+        self.logger_indent      = options['indent'] if options.has_key('indent') else 0    
+    def indent(self,n):
+        self.logger_indent = n
+    def _print(self,s):
+        ss =''
+        for i in range(self.logger_indent) :
+            ss += '\t'
+        print ss + s
+        
     def open(self):
         self._experiment.tic()
         for i in range(len(self._loop_sizes)-1):
@@ -156,7 +211,7 @@ class logger(object):
         if self._is_event :
              self._events.toc(self._events_len-1)
         total_t = self._experiment.durations()[0]
-        self._print((self._close_frmt).format(self.time_estimate[0],total_t))
+        self._print((self._close_frmt).format(total_t))
     def loop(self,loop_index,loop_icrmnt):
         self._loop.toc(loop_index)
         loop_time  = self._loop.durations()[loop_index]
@@ -194,7 +249,7 @@ class logger(object):
             s_tuple += cnd_frmt.format(t) + ','
         s_tuple += ')'
         self._print(s_tuple + '\t' + s)
-    
+
 class ExperimentErrors(Exception):
     """
         Base class for pyHegel tools errors
