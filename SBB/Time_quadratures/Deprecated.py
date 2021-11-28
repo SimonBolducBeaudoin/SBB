@@ -20,7 +20,6 @@ class Quads_helper(object):
         Bugs :
         
     """
-    __version__ = {'Quads_helper': 0.5}
     __filters__ = {'gauss':0,'bigauss':1,'flatband':2}
     """
         Public
@@ -304,8 +303,6 @@ class QsVsVdc_info(Info,Quads_helper):
         Moved some gen info into Experiement helper
         Removed unncessary variables and methods 
     """
-    __version__     = { 'QsVsTemp_info'  : 1.2 }
-    __version__.update(Conditions_logic.__version__)
     powers      = numpy.array([1,2,4,8])
     @staticmethod
     def gen_meta_info(circuit_info,compute_info,aqc_info,quads_info,hist_info):
@@ -352,7 +349,6 @@ class QsVsVdc_info(Info,Quads_helper):
         return Conditions_logic._core_loop_iterator(self)
 
 class QsVsVdc_fig(object):
-    __version__     = { 'QsVsVdc_fig'  : 1.1 }
     def __init__(self, exp):
         self.exp = exp
     #############
@@ -909,13 +905,6 @@ class QsVsVdc_exp(QsVsVdc_info,Lagging_computation):
             - Imbed the computation part for ns in a class of its own
         Bugs :
     """
-    __version__     = { 'QsVsVdc_exp'  : 1.2 }
-    __version__.update(QsVsVdc_info.__version__)
-    __version__.update(Lagging_computation.__version__)
-    __version__.update(logger_acq_and_compute.__version__)      # Has an instance of this logger
-    __version__.update(Quads_helper.__version__)
-    __version__.update(Yoko_wrapper.__version__)
-    __version__.update(Guzik_wrapper.__version__)
     def _set_devices(self,devices):
         self._gz                        =   devices[0] 
         self._yoko                      =   devices[1]
@@ -1075,11 +1064,7 @@ class QsVsVdc_analysis(QsVsVdc_info,Analysis):
             - __doc__
             - Make errorbar calculations properly
     """
-    __version__     = { 'QsVsVdc_analysis'  : 1.2 }
     __exp_class__   = QsVsVdc_exp
-    __version__.update(__exp_class__.__version__)
-    __version__.update(Analysis.__version__)
-    __version__.update(Three_points_polarisation.__version__)
     #############
     # Utilities #
     #############  

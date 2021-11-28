@@ -8,8 +8,6 @@ class logger_acq_and_compute(logger):
     """
         A logger with default Aquisition and Computing events
     """
-    __version__     = { 'logger_aqc_and_compute'  : 0.2 }
-    __version__.update(logger.__version__)   
     def __init__(self,time_estimates,*arg,**log_dict):
         if log_dict :
             super(logger_aqc_and_compute,self).__init__(time_estimates,log_dict)
@@ -51,7 +49,6 @@ class Three_points_polarisation(object):
             - Add photoexcitation behavior
         Bugs :
     """
-    __version__     = { 'Three_points_polarisation'  : 0.1 }
     def __init__(self,R_s,R_pol):
         self.R_s    = R_s
         self.R_pol  = R_pol
@@ -91,7 +88,6 @@ class Conditions_logic(object):
                 or   every 3rd point ... ref cnd cnd cnd    ref cnd cnd cnd
         Bugs :
     """
-    __version__     = { 'Conditions_logic'  : 0.6 }
     @staticmethod
     def _set_options(self,**options):
         self._conditions_options =   {'antisym':options.get('Vdc_antisym') }
