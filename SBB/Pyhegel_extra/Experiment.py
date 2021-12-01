@@ -154,19 +154,15 @@ class logger(object):
             'events'        : '_events'      ,
             'conditions'    : '_conditions_frmt'
         }
-        _default_time_est = (1.0,)
         
         def _log_dict_to_attributes(self,log_dict,conv):
-            for key in self._default_log :  # set the attributes of the given log_dict or the default one when it doens't exist
-                setattr(self,conv[key],log_dict[key]) if key in log_dict else setattr(self,conv[key],self._default_log[key])
+            for key in _default_log :  # set the attributes of the given log_dict or the default one when it doens't exist
+                setattr(self,conv[key],log_dict[key]) if key in log_dict else setattr(self,conv[key],_default_log[key])
                 
-        def _set_time_estimate(self,time_estimates):
-            self.time_estimate =  self._default_time_est if  time_estimates  == () or time_estimates == None else time_estimates
-        
         time_estimates , log_dict = deprecated_args
         
         if log_dict == () or log_dict == None : # Set the default log
-            dict_to_attr(self,self._default_log,_user_key_to_attribute_key)
+            dict_to_attr(self,_default_log,_user_key_to_attribute_key)
         else :
             _log_dict_to_attributes(self,log_dict,_user_key_to_attribute_key)
         
@@ -189,7 +185,6 @@ class logger(object):
         self._events.tic(0)
         self._events.toc(0)
         self._conditions_frmt = log_dict['conditions_frmt'] if log_dict.has_key('conditions_frmt') else ('{: .1f}',)  
-        _set_time_estimate(self.time_estimates)
         self.logger_indent      = options['indent'] if options.has_key('indent') else 0    
     def indent(self,n):
         self.logger_indent = n
