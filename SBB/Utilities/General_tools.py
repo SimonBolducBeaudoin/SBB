@@ -90,7 +90,18 @@ def centered_moment(hx,hs,exp,n_total,no_clip=True):
     mu = moment(hx,hs,1,n_total,no_clip)
     tmp = (((hx[None,None,:]-mu[...,None])**exp)*hs)
     tmp = tmp[...,1:-1] if no_clip else tmp
-    return (tmp.sum(axis=-1))/n_total    
+    return (tmp.sum(axis=-1))/n_total  
+
+def SE(mu2k,muk,n):
+    """ 
+        Voir notes Virally Central limit theorem
+        Computation of the standard error for the moment of order K
+        mu2k : is the moment of order 2 k
+        muk  : is the moment of order k
+        If these moments are not centered then the definition is good for none centered moment
+        Idem for centered moment
+    """
+    return numpy.sqrt(numpy.abs(mu2k-muk**2)/float(n))    
 
 def polyfit_above_th(X,Y,Xth,deg=1,Y_even=None,swap=None):
     """
