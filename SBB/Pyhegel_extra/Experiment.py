@@ -278,8 +278,13 @@ class Info(object):
             raise ConditionsError('n_measures should be int')
         self._n_measures                = conditions[0]         # The first element of the tuple is the number of repetions
         try :
-            self._n_measures            = self._n_mod
-            self._conditions            = self._n_mod
+            """
+            This try statement will eventually be removed
+            When Info class will be integrated into Experiement class
+            """
+            self._n_div                 = self._n_measures//self._n_mod
+            self._n_measures            = self._n_mod           # having variable duplacated likes this is not a good idea ...?
+            self._conditions[0]         = self._n_mod                 
         except :
             pass
         self._conditions_core_loop_raw  = conditions[1:]        # The 2nd   element ...          is an list of 1D array    
@@ -452,10 +457,11 @@ class Analysis(Info):
         to_save['_options']         = self._options
         to_save['_conditions']      = self._conditions
         to_save['_meta_info']       = self._meta_info
-        if (kwargs.get('format')=='.npz'):
+        if (kwargs.get('format')=='compress'):
             numpy.savez_compressed(os.path.join(path_save,filename),**to_save)
         else :
-            numpy.save(os.path.join(path_save,filename),**to_save)
+            # allows memory mapping (more efficient for huge arrays)
+            numpy.save(os.path.join(path_save,filename),to_save,allow_pickle=True,fix_imports=True)
         print "Data saved \n \t folder : {} \n \t {}".format(path_save,filename) 
     def _load_data_dict(self,data_dict):
         dict_to_attr(self,data_dict)
@@ -672,28 +678,28 @@ class Experiment(Analysis):
     #############
     # User interface #
     #############
-    def measure_once(self,**kwargs):
+    def measure_once(self,no_analysis=False,no_save=False,**kwargs):
         """
         Execute the experiment only once regarless 
             Will attempt to execute the analysis and save 
         """
         self._meta_info['repetitions'] += 1
         self._measurement_loop()
-        if kwargs.get('no_analysis',False):
+        if no_analysis:
             pass
         else :
             try :
                 self.update_analysis(**kwargs)
             except :
                 print "Unable to execute analysis"
-        if kwargs.get('no_save',False):
+        if no_save :
             pass
         else:
             try :
                 self.save_data(path_save=self._save_path,**kwargs)
             except :
                 print "Unable to save data"
-    def measure(self,n_repetitions=None,**kwargs):
+    def measure(self,n_repetitions=None,no_analysis=False,no_save=False,**kwargs):
         """
         n_mod       is the number of repetition before the reduction and analysis are run and data is saved
         n_repetitions (internal variable _n_div = n_measures//n_mod) is the number of time the n_mod experiements are repeated
@@ -702,8 +708,14 @@ class Experiment(Analysis):
         for  rep in range(Reps):            
             self._meta_info['repetitions'] += 1
             self._measurement_loop()
-            self.update_analysis(**kwargs)
-            self.save_data(path_save=self._save_path,**kwargs)
+            if no_analysis:
+                pass
+            else :
+                self.update_analysis(**kwargs)
+            if no_save :
+                pass
+            else:
+                self.save_data(path_save=self._save_path,**kwargs)
     #############
     # Utilities #
     #############
