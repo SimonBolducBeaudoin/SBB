@@ -625,7 +625,6 @@ class Experiment(Analysis):
         Todos :
             - Add a way to display parents descriptions using self.description
             - Update __doc__
-            - Add reset_obj ?
                 - done for some sub classes but idk if im done implementing this...
         Bugs :
             - After constructing from data structure the destructor stills try to clean devices ?
@@ -677,35 +676,15 @@ class Experiment(Analysis):
         self._log            =   logger((),()) # Default timer    
     #############
     # User interface #
-    #############
-    def measure_once(self,no_analysis=False,no_save=False,**kwargs):
-        """
-        Execute the experiment only once regarless 
-            Will attempt to execute the analysis and save 
-        """
-        self._meta_info['repetitions'] += 1
-        self._measurement_loop()
-        if no_analysis:
-            pass
-        else :
-            try :
-                self.update_analysis(**kwargs)
-            except :
-                print "Unable to execute analysis"
-        if no_save :
-            pass
-        else:
-            try :
-                self.save_data(path_save=self._save_path,**kwargs)
-            except :
-                print "Unable to save data"
+    #############        
     def measure(self,n_repetitions=None,no_analysis=False,no_save=False,**kwargs):
         """
         n_mod       is the number of repetition before the reduction and analysis are run and data is saved
         n_repetitions (internal variable _n_div = n_measures//n_mod) is the number of time the n_mod experiements are repeated
         """
         Reps = n_repetitions if n_repetitions else self._n_div
-        for  rep in range(Reps):            
+        for  rep in range(Reps):
+            self.reset_objects()                # this is done here so that ojbects are available for auscultation
             self._meta_info['repetitions'] += 1
             self._measurement_loop()
             if no_analysis:
@@ -795,9 +774,9 @@ class Experiment(Analysis):
     def _update_analysis_from_load(self,**kwargs):
         self._compute_analysis(**kwargs)
         self._update_data()
-    ######################
+    ########################
     # Repetitions behavior #
-    ######################
+    ########################
     def reset_objects(self):
         pass
     #############
