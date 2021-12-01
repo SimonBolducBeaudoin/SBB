@@ -440,7 +440,7 @@ class Analysis(Info):
         time_stamp                  = time.strftime('%y%m%d-%H%M%S') # File name will correspond to when the experiment ended
         filename                    = prefix+'{}.npz'.format(time_stamp)
         to_save                     = self._data
-        to_save['SBB_version']      = self.__SBB_version__
+        to_save['SBB_version']      = __SBB_version__
         to_save['_options']         = self._options
         to_save['_conditions']      = self._conditions
         to_save['_meta_info']       = self._meta_info
