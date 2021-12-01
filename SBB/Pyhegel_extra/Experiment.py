@@ -10,17 +10,6 @@ import pkg_resources  # part of setuptools
 __SBB_version__ = {'SBB':pkg_resources.require("SBB")[0].version}
 del pkg_resources
 
-# import git
-# repo = git.Repo(search_parent_directories=False)
-# sha = repo.head.object.hexsha
-# del git
-# print "SBB version number : {}".format(__SBB_version__)
-# print "Repository : {}".format(repo)
-# print "Hash : {}".format(sha)
-
-
-# DEPRECATED LINE from General_tools  import compute_differential
-
 ####################
 #  Utilities #
 ####################
@@ -49,33 +38,16 @@ class timer(object):
         return self.timer[1,:]
         
 class logger(object):
-    """
-        Times an experiment 
-        and print events and progress
+    """ 
+        A simple log for simple experiments
+            Times the progression
+            Prints the progression the de command line
+            FUTUR : (Optional) saves the log in a txt file
+        Times an experiment, prints events and progress
         begin
             loop
                 loop_events
         end
-        
-        log_dict (example)
-        {
-            'open'          : 'Lauching experiment'
-            'close'         : 'Experience over : \n \t Estimated time [s] {:04.2F} \n \t Real time {:04.2F} [s]'
-            'loop_sizes'    : (1st_loop,2nd_loop,...)
-            'loop'          : 'Progess {:03}/{:03d} \t last_loop time: {:04.2F} [s] '
-            'events'        : (None by default)
-                            : (format example) # The first parameter is an index for the event since dictionnary are now guarentied to preserve order
-                                {
-                                    "Event_name" : "format_ready_str"
-                                }
-                            : (example) 
-                                {
-                                "Aquisition": "Acquisition : {:04.2F} [s]", 
-                                "Computing" : "Computing : {:04.2F} [s] "
-                                }
-            'rate'          : ( l_data*1.0e-9.0 ,"Rate : {:04.2F} [GSa/s] " ),
-        }
-        times_est   = (experiment_time,loop_time)
         
         Todos :
             - Modifiy the _print() to save (or not) the string of log into a file
@@ -83,51 +55,107 @@ class logger(object):
             -
     """   
  
-    _default_log = \
+    __default__ = \
     {
         'loop_sizes': (1,),
         'open'      : 'Lauching experiment' ,
-        'close'     : 'Experience over : \n \t Estimated time [s] {:04.2F} \n \t Real time {:04.2F} [s]' ,
+        'close'     : 'Experience over : \n \t Real time {:04.2F} [s]' ,
         'loop'      : 'Progess {:03}/{:03d} \t last_loop time: {:04.2F} [s]' ,
-        'conditions': '{:04.1F}'
+        'conditions': ('{: .1f}',) ,
+        'events'    : {'event':'{: .1f}'},
+        'indent'    : 0,
+        'rate'      : None,
     }
-    _allowed__user_key = ('loop_sizes','open','close','loop','rate','events')
-    _user_key_to_attribute_key = \
-    {
-        'loop_sizes'    : '_loop_sizes'  ,
-        'open'          : '_open_str'    ,
-        'close'         : '_close_frmt'  ,
-        'loop'          : '_loop_frmt'   ,
-        'is_rate'       : '_is_rate'     ,
-        'rate'          : '_event_rate'  ,
-        'is_event'      : '_is_event'    ,
-        'events'        : '_events'      ,
-        'conditions'    : '_conditions_frmt'
-    }
-    _default_time_est = (1.0,)
-    def __init__( self, time_estimates , log_dict , **options):
-        self._attributes_instanciation(time_estimates,log_dict)
-        self.logger_indent      = options['indent'] if options.has_key('indent') else 0
-    def indent(self,n):
-        self.logger_indent = n
-    def _print(self,s):
-        ss =''
-        for i in range(self.logger_indent) :
-            ss += '\t'
-        print ss + s
-    def _attributes_instanciation(self,time_estimates , log_dict):
-        if log_dict == () or log_dict == None : # Set the default log
-            dict_to_attr(self,self._default_log,self._user_key_to_attribute_key)
+    
+    def __init__( self,time_estimates=None , log_dict=None ,
+        loop_sizes  =__default__['loop_sizes'] ,
+        open        =__default__['open'] ,
+        close       =__default__['close'] ,
+        loop        =__default__['loop'] ,
+        conditions  =__default__['conditions'] ,
+        events      =__default__['events'] ,
+        indent      =__default__['indent'] ,
+        rate        =__default__['rate'],
+        ):
+        """
+            This should only be used with kwargs, args are left here from compatibility with old code only ...
+            
+            # should not be used for compatibility with old code only
+            # Indents the whole log
+            # Option to print rate (EX: GSa/s) for each events
+        """    
+        deprecated_args         = (time_estimates,log_dict)
+        self._loop_sizes        = loop_sizes
+        self._open_str          = open
+        self._close_frmt        = close
+        self._loop_frmt         = loop
+        self._is_event          = True             # DEPRECATED : is now always true but I did'nt bother to make the changes outside of __init__
+        self._events_dict       = events
+        self._conditions_frmt   = conditions
+        self.logger_indent      = indent
+        if rate :
+            self._is_rate       = True
+            self._event_rate    = rate
         else :
-            self._log_dict_to_attributes(log_dict,self._user_key_to_attribute_key)
-        self._event_attributes_instanciation(log_dict)
-        self._set_time_estimate(time_estimates)
-    def _log_dict_to_attributes(self,log_dict,conv):
-        for key in self._default_log :  # set the attributes of the given log_dict or the default one when it doens't exist
-            setattr(self,conv[key],log_dict[key]) if key in log_dict else setattr(self,conv[key],self._default_log[key])
-    def _set_time_estimate(self,time_estimates):
-        self.time_estimate =  self._default_time_est if  time_estimates  == () or time_estimates == None else time_estimates
-    def _event_attributes_instanciation(self,log_dict):
+            self._is_rate       = False
+        #Timer initialisation
+        ## Whole experiment timer
+        self._experiment = timer()
+        self._experiment.tic()
+        self._experiment.toc()
+        ## Loop timer
+        self._loop       = timer(len(self._loop_sizes))
+        self._loop.tic()
+        self._loop.toc()
+        ## Event(s) time
+        self._events_len  = len(self._events_dict)
+        self._events      = timer(self._events_len)
+        for i in range(self._events_len):
+            self._events.tic(i)
+            self._events.toc(i) 
+        ##############################################################
+        if (deprecated_args[1]): # reading only the second element because time_estimate as been removed anyway
+            self._deprecated_init(*deprecated_args,indent=indent)
+                      
+    def _deprecated_init(self,*deprecated_args,**options) :
+        """
+        This will eventually be deleted
+        Should not be used for compatibility with old code only
+        """
+        
+        _default_log = \
+        {
+            'loop_sizes': (1,),
+            'open'      : 'Lauching experiment' ,
+            'close'     : 'Experience over : \n \t Real time {:04.2F} [s]' ,
+            'loop'      : 'Progess {:03}/{:03d} \t last_loop time: {:04.2F} [s]' ,
+            'conditions': '{:04.1F}'
+            
+        }
+        _user_key_to_attribute_key = \
+        {
+            'loop_sizes'    : '_loop_sizes'  ,
+            'open'          : '_open_str'    ,
+            'close'         : '_close_frmt'  ,
+            'loop'          : '_loop_frmt'   ,
+            'is_rate'       : '_is_rate'     ,
+            'rate'          : '_event_rate'  ,
+            'is_event'      : '_is_event'    ,
+            'events'        : '_events'      ,
+            'conditions'    : '_conditions_frmt'
+        }
+        
+        def _log_dict_to_attributes(self,log_dict,conv):
+            for key in _default_log :  # set the attributes of the given log_dict or the default one when it doens't exist
+                setattr(self,conv[key],log_dict[key]) if key in log_dict else setattr(self,conv[key],_default_log[key])
+                
+        time_estimates , log_dict = deprecated_args
+        
+        if log_dict == () or log_dict == None : # Set the default log
+            dict_to_attr(self,_default_log,_user_key_to_attribute_key)
+        else :
+            _log_dict_to_attributes(self,log_dict,_user_key_to_attribute_key)
+        
         self._is_rate    =   'rate' in log_dict
         if self._is_rate :
             self._event_rate = log_dict['rate']
@@ -137,14 +165,25 @@ class logger(object):
         self._loop       = timer(len(self._loop_sizes))
         self._loop.tic()
         self._loop.toc()
-        self._is_event   = 'events' in log_dict
+        self._is_event   = log_dict.has_key('events')
         if self._is_event :
             self._events_dict = log_dict['events']
             self._events_len  = len(self._events_dict)
             self._events      = timer(self._events_len)
-            self._events.tic(0)
-            self._events.toc(0)
-            self._conditions_frmt = log_dict['conditions_frmt'] if log_dict.has_key('conditions_frmt') else ('{: .1f}',)  
+        else :
+            self
+        self._events.tic(0)
+        self._events.toc(0)
+        self._conditions_frmt = log_dict['conditions_frmt'] if log_dict.has_key('conditions_frmt') else ('{: .1f}',)  
+        self.logger_indent      = options['indent'] if options.has_key('indent') else 0    
+    def indent(self,n):
+        self.logger_indent = n
+    def _print(self,s):
+        ss =''
+        for i in range(self.logger_indent) :
+            ss += '\t'
+        print ss + s
+        
     def open(self):
         self._experiment.tic()
         for i in range(len(self._loop_sizes)-1):
@@ -157,7 +196,7 @@ class logger(object):
         if self._is_event :
              self._events.toc(self._events_len-1)
         total_t = self._experiment.durations()[0]
-        self._print((self._close_frmt).format(self.time_estimate[0],total_t))
+        self._print((self._close_frmt).format(total_t))
     def loop(self,loop_index,loop_icrmnt):
         self._loop.toc(loop_index)
         loop_time  = self._loop.durations()[loop_index]
@@ -195,7 +234,7 @@ class logger(object):
             s_tuple += cnd_frmt.format(t) + ','
         s_tuple += ')'
         self._print(s_tuple + '\t' + s)
-    
+
 class ExperimentErrors(Exception):
     """
         Base class for pyHegel tools errors
@@ -277,6 +316,16 @@ class Info(object):
         if type(conditions[0]) != int :
             raise ConditionsError('n_measures should be int')
         self._n_measures                = conditions[0]         # The first element of the tuple is the number of repetions
+        try :
+            """
+            This try statement will eventually be removed
+            When Info class will be integrated into Experiement class
+            """
+            self._n_div                 = self._n_measures//self._n_mod
+            self._n_measures            = self._n_mod           # having variable duplacated likes this is not a good idea ...?
+            self._conditions[0]         = self._n_mod                 
+        except :
+            pass
         self._conditions_core_loop_raw  = conditions[1:]        # The 2nd   element ...          is an list of 1D array    
         self.conditions                 = self.get_conditions() # Public copy of the experimental conditions
         self.n_measures                 = self.get_n_measures() # Public copy of _n_measure
@@ -419,7 +468,7 @@ class Analysis(Info):
     def _compute_n_measure(self):
         return 1 if self._test else self._n_measures
     def _n_measure_total(self):
-        return self._n_measures*(1+self._meta_info['repetitions'])
+        return self._n_measures*(self._meta_info['repetitions'])
     def get_data_dict(self):
         return self._data
     ############
@@ -437,7 +486,7 @@ class Analysis(Info):
     #############
     # Save/load #
     #############
-    def save_data(self,path_save,prefix='anal_'):    
+    def save_data(self,path_save,prefix='anal_',**kwargs):    
         time_stamp                  = time.strftime('%y%m%d-%H%M%S') # File name will correspond to when the experiment ended
         filename                    = prefix+'{}.npz'.format(time_stamp)
         to_save                     = self._data
@@ -445,7 +494,11 @@ class Analysis(Info):
         to_save['_options']         = self._options
         to_save['_conditions']      = self._conditions
         to_save['_meta_info']       = self._meta_info
-        numpy.savez_compressed(os.path.join(path_save,filename),**to_save)
+        if (kwargs.get('format')=='compress'):
+            numpy.savez_compressed(os.path.join(path_save,filename),**to_save)
+        else :
+            # allows memory mapping (more efficient for huge arrays)
+            numpy.save(os.path.join(path_save,filename),to_save,allow_pickle=True,fix_imports=True)
         print "Data saved \n \t folder : {} \n \t {}".format(path_save,filename) 
     def _load_data_dict(self,data_dict):
         dict_to_attr(self,data_dict)
@@ -604,7 +657,6 @@ class Experiment(Analysis):
         Todos :
             - Add a way to display parents descriptions using self.description
             - Update __doc__
-            - Add reset_obj ?
                 - done for some sub classes but idk if im done implementing this...
         Bugs :
             - After constructing from data structure the destructor stills try to clean devices ?
@@ -626,6 +678,8 @@ class Experiment(Analysis):
     def _set_options(self,options):
         super(Experiment,self)._set_options(options)
         self._data_from_experiment  = not(options['loading_data']) if options.has_key('loading_data') else True
+        self._save_path = options.get('save_path',os.getcwd())
+        self._n_mod = options.get('n_mod',1)
         self._estimated_time_per_loop = options['estimated_time_per_loop'] if options.has_key('estimated_time_per_loop') else 1.0
         self._debug                 = options.get('debug')     
     def _SET_devices(self,devices):
@@ -652,29 +706,25 @@ class Experiment(Analysis):
         self._log            =   logger((),()) # Default timer    
     #############
     # User interface #
-    #############
-    def measure(self):
-        self._measurement_loop()
-    def repeat_measure(self,n_repetitions = 1):
+    #############        
+    def measure(self,n_repetitions=None,no_analysis=False,no_save=False,**kwargs):
         """
-            In the current state of the class if I do
-            n_measures = n_measures + condition[0]
-            the repetition is going to be longer than the previous execution
-            to keep track of the number of total number of repetition im going to temporarly use 
-            a new variable, but this means that conputations using n_measures (like all _std ) wont be correct.
-            
-            Repetitions are saved/loaded automatically in meta_info
-            Todos :
-                - Update the std calculations to include repetitions
-                - Anything else regarding that feature ?
-            Bugs :
+        n_mod       is the number of repetition before the reduction and analysis are run and data is saved
+        n_repetitions (internal variable _n_div = n_measures//n_mod) is the number of time the n_mod experiements are repeated
         """
-        for  rep in range(n_repetitions):
+        Reps = n_repetitions if n_repetitions else self._n_div
+        for  rep in range(Reps):
+            self.reset_objects()                # this is done here so that ojbects are available for auscultation
             self._meta_info['repetitions'] += 1
             self._measurement_loop()
-    # def update_analysis   : (below)
-    # def save_data         : (below)
-    # def load_data         : (below)
+            if no_analysis:
+                pass
+            else :
+                self.update_analysis(**kwargs)
+            if no_save :
+                pass
+            else:
+                self.save_data(path_save=self._save_path,**kwargs)
     #############
     # Utilities #
     #############
@@ -740,13 +790,13 @@ class Experiment(Analysis):
                 self._loop_core(index_tuple,condition_tuple)
             self._repetition_loop_end(n)
         self._all_loop_close()
-    ############
+    ######################
     # Reduction/Analysis #
-    ############
+    ######################
     def _compute_reduction(self):
         pass
     def update_analysis(self,**kwargs):
-        return self._update_analysis_from_aquisition(**kwargs) if self._data_from_experiment else self._update_analysis_from_load(**kwargs)  
+        return self._update_analysis_from_aquisition(**kwargs) if self._data_from_experiment else self._update_analysis_from_load(**kwargs)
     def _update_analysis_from_aquisition(self,**kwargs) :
         self._compute_reduction()
         self._compute_analysis(**kwargs)
@@ -754,11 +804,16 @@ class Experiment(Analysis):
     def _update_analysis_from_load(self,**kwargs):
         self._compute_analysis(**kwargs)
         self._update_data()
+    ########################
+    # Repetitions behavior #
+    ########################
+    def reset_objects(self):
+        pass
     #############
     # Save/load #
     ############# 
-    def save_data(self,path_save,prefix='exp_'):    
-        super(Experiment,self).save_data(path_save,prefix=prefix)
+    def save_data(self,path_save,prefix='exp_',**kwargs):
+        super(Experiment,self).save_data(path_save,prefix=prefix,**kwargs)
     def _check_cls_vs_data_versions(self):
         try : 
             versions_saved = self._versions_saved
@@ -844,11 +899,18 @@ class Lagging_computation(Experiment):
 
 class Cross_Patern_Lagging_computation(Lagging_computation):
     """
-     LAST MODIFICATION :
-            self._loop_core(...)
-            Modified to take facultative arguments index_it and condition_it the iterators of the core_loop
-            They can be used to modify the core_loop behaviour depending on some interal values of  index_it and condition_it
+    Sweeps on a cross like (N dimensionnal cross) patern instead of a matrix keeping all other constant (to a certain reference value)
+    By default this reference values for each axis is set to be the 0'th index of each axis but can be set by ref_idxs  (in meta info)
+    
+    LAST MODIFICATION :
+        Added referencing options in cross_enumerate
+        Added behaviour in build attributes to catch the ref_idxs meta_info
+        
     """
+    
+    def _build_attributes(self):
+        self._ref_idxs = self._meta_info['ref_idxs'] if self._meta_info.has_key('ref_idxs') else numpy.zeros((len(self._conditions_core_loop_raw),),dtype=int)
+    
     class cross_enumerate(object):
         """
         An enumerator of the indexes and an iterator goes over the arguments one by one fixing all the other arguments to theirfirst value
@@ -860,11 +922,29 @@ class Cross_Patern_Lagging_computation(Lagging_computation):
                     (1,4)
                     (1,5)
                     (1,6)
+            If the kwarg ref_idxs exists its elements are use as the index for the reference cases
+            Example :
+                ref_idxs = (1,2)
+                    (1,6)
+                    (2,6)
+                    (3,6)
+                    (2,4)
+                    (2,5)
+                    (2,6)
+            by default the ref_idxs numpy.zeros( len(args) )
         """
-        def __init__(self,*args):
+        def __init__(self,*args,**kwargs):
             self.cndtns          = args
             try :
                 self.dim             = len(args)
+            except :
+                raise Exception("Bad initialization")
+            self.ref_idxs = numpy.r_[kwargs['ref_idxs']].astype(int) if kwargs.has_key('ref_idxs') else numpy.zeros((self.dim,),dtype=int)
+            try :
+                if self.ref_idxs.shape != (self.dim,):
+                    raise Exception
+                else :
+                    pass 
             except :
                 raise Exception("Bad initialization")
             self.next_idx        = 0
@@ -890,13 +970,12 @@ class Cross_Patern_Lagging_computation(Lagging_computation):
                 self.next_dim += 1
             else :
                 self.next_idx += 1
-     
             cndtn = tuple()
             for i,c in enumerate(self.cndtns):
                 if i == self.current_dim :
                     cndtn +=(c[self.idx],)
                 else :
-                    cndtn +=(c[0],)
+                    cndtn +=(c[self.ref_idxs[i]],)
             return cndtn
         def next(self):
             """
@@ -904,15 +983,6 @@ class Cross_Patern_Lagging_computation(Lagging_computation):
                 see : https://stackoverflow.com/questions/5982817/problems-using-next-method-in-python
             """
             return self.__next__()
-    
-    # def _loop_core(self,index_tuple,condition_tuple,index_it,condition_it):
-        # """
-        # Loop core is defined in child class
-        # For this class index_it and condition_it might be usefull
-        # Copy paste this method into child class definition raplacing this comment for core_loop behaviour
-        # and leaving commands bellow for log compatibility.
-        # """
-        # super(Croos_Patern_Lagging_computation,self)._loop_core(index_tuple,condition_tuple)
     
     class core_iterator(object):
         """
@@ -936,7 +1006,7 @@ class Cross_Patern_Lagging_computation(Lagging_computation):
             return self.__next__()
     
     def _core_loop_iterator(self):
-        it     = self.cross_enumerate(*self._conditions_core_loop_raw)
+        it     = self.cross_enumerate(*self._conditions_core_loop_raw,ref_idxs=self._ref_idxs)
         it_idx = self.cross_enumerate(*it.gen_idxs())
         return it_idx, it
     
@@ -952,7 +1022,3 @@ class Cross_Patern_Lagging_computation(Lagging_computation):
             self._last_loop_core_iteration(n)        
             self._repetition_loop_end(n)     # This feals like a repetition of self._last_loop_core_iteration is it usefull ?
         self._all_loop_close()
-
-##################
-# DEPRECATED BELOW 
-##################
