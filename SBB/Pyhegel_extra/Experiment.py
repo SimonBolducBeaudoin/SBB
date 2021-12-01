@@ -781,9 +781,9 @@ class Experiment(Analysis):
                 self._loop_core(index_tuple,condition_tuple)
             self._repetition_loop_end(n)
         self._all_loop_close()
-    ############
+    ######################
     # Reduction/Analysis #
-    ############
+    ######################
     def _compute_reduction(self):
         pass
     def update_analysis(self,**kwargs):
@@ -795,6 +795,11 @@ class Experiment(Analysis):
     def _update_analysis_from_load(self,**kwargs):
         self._compute_analysis(**kwargs)
         self._update_data()
+    ######################
+    # Repetitions behavior #
+    ######################
+    def reset_objects(self):
+        pass
     #############
     # Save/load #
     ############# 
