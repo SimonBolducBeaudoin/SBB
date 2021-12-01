@@ -441,7 +441,7 @@ class Analysis(Info):
         time_stamp                  = time.strftime('%y%m%d-%H%M%S') # File name will correspond to when the experiment ended
         filename                    = prefix+'{}.npz'.format(time_stamp)
         to_save                     = self._data
-        to_save['_versions_saved']  = self.__SBB_version__
+        to_save['SBB_version']      = self.__SBB_version__
         to_save['_options']         = self._options
         to_save['_conditions']      = self._conditions
         to_save['_meta_info']       = self._meta_info
@@ -452,15 +452,10 @@ class Analysis(Info):
         self._data  = data_dict
     def _check_cls_vs_data_versions(self):
         try : 
-            versions_saved = self._versions_saved
+            versions_saved = self.SBB_version
         except AttributeError :
             versions_saved = None
         version = self.__SBB_version__
-        try :
-            version.pop(type(self).__name__)
-            version.pop(Analysis.__name__)
-        except KeyError :
-            LoadingWarning.warn('Analysis class did not contain its own version number.')
         if ( version != versions_saved ) and versions_saved:
             VersionsWarning.warn(version,versions_saved)
     @classmethod
