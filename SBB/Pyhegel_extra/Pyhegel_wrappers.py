@@ -48,6 +48,21 @@ class Pyhegel_wrapper(object):
         pass
     def set(self,val):
         pass
+             
+class Dummy(Pyhegel_wrapper):
+    """
+        A dummy device that implement only default behavior and prints what it does.
+    """
+    def get_pyhegel_instance(self):
+        print "get_pyhegel_instance"
+    def set_init_state(self,val):
+        print "set_init_state :{}".format(val)
+    def set_close_state(self):
+        print "set_close_state"
+    def get(self):
+        print "get"
+    def set(self,val):
+        print "set :{}".format(val)
 
 class Lakeshore_wrapper(Pyhegel_wrapper):
     """ 
