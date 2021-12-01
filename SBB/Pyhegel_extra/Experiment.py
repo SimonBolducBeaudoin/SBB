@@ -266,6 +266,16 @@ class Info(object):
         if type(conditions[0]) != int :
             raise ConditionsError('n_measures should be int')
         self._n_measures                = conditions[0]         # The first element of the tuple is the number of repetions
+        try :
+            """
+            This try statement will eventually be removed
+            When Info class will be integrated into Experiement class
+            """
+            self._n_div                 = self._n_measures//self._n_mod
+            self._n_measures            = self._n_mod           # having variable duplacated likes this is not a good idea ...?
+            self._conditions[0]         = self._n_mod                 
+        except :
+            pass
         self._conditions_core_loop_raw  = conditions[1:]        # The 2nd   element ...          is an list of 1D array    
         self.conditions                 = self.get_conditions() # Public copy of the experimental conditions
         self.n_measures                 = self.get_n_measures() # Public copy of _n_measure
@@ -408,7 +418,7 @@ class Analysis(Info):
     def _compute_n_measure(self):
         return 1 if self._test else self._n_measures
     def _n_measure_total(self):
-        return self._n_measures*(1+self._meta_info['repetitions'])
+        return self._n_measures*(self._meta_info['repetitions'])
     def get_data_dict(self):
         return self._data
     ############
@@ -426,7 +436,7 @@ class Analysis(Info):
     #############
     # Save/load #
     #############
-    def save_data(self,path_save,prefix='anal_'):    
+    def save_data(self,path_save,prefix='anal_',**kwargs):    
         time_stamp                  = time.strftime('%y%m%d-%H%M%S') # File name will correspond to when the experiment ended
         filename                    = prefix+'{}.npz'.format(time_stamp)
         to_save                     = self._data
@@ -434,7 +444,11 @@ class Analysis(Info):
         to_save['_options']         = self._options
         to_save['_conditions']      = self._conditions
         to_save['_meta_info']       = self._meta_info
-        numpy.savez_compressed(os.path.join(path_save,filename),**to_save)
+        if (kwargs.get('format')=='compress'):
+            numpy.savez_compressed(os.path.join(path_save,filename),**to_save)
+        else :
+            # allows memory mapping (more efficient for huge arrays)
+            numpy.save(os.path.join(path_save,filename),to_save,allow_pickle=True,fix_imports=True)
         print "Data saved \n \t folder : {} \n \t {}".format(path_save,filename) 
     def _load_data_dict(self,data_dict):
         dict_to_attr(self,data_dict)
@@ -620,6 +634,8 @@ class Experiment(Analysis):
     def _set_options(self,options):
         super(Experiment,self)._set_options(options)
         self._data_from_experiment  = not(options['loading_data']) if options.has_key('loading_data') else True
+        self._save_path = options.get('save_path',os.getcwd())
+        self._n_mod = options.get('n_mod',1)
         self._estimated_time_per_loop = options['estimated_time_per_loop'] if options.has_key('estimated_time_per_loop') else 1.0
         self._debug                 = options.get('debug')     
     def _SET_devices(self,devices):
@@ -647,28 +663,44 @@ class Experiment(Analysis):
     #############
     # User interface #
     #############
-    def measure(self):
+    def measure_once(self,no_analysis=False,no_save=False,**kwargs):
+        """
+        Execute the experiment only once regarless 
+            Will attempt to execute the analysis and save 
+        """
+        self._meta_info['repetitions'] += 1
         self._measurement_loop()
-    def repeat_measure(self,n_repetitions = 1):
+        if no_analysis:
+            pass
+        else :
+            try :
+                self.update_analysis(**kwargs)
+            except :
+                print "Unable to execute analysis"
+        if no_save :
+            pass
+        else:
+            try :
+                self.save_data(path_save=self._save_path,**kwargs)
+            except :
+                print "Unable to save data"
+    def measure(self,n_repetitions=None,no_analysis=False,no_save=False,**kwargs):
         """
-            In the current state of the class if I do
-            n_measures = n_measures + condition[0]
-            the repetition is going to be longer than the previous execution
-            to keep track of the number of total number of repetition im going to temporarly use 
-            a new variable, but this means that conputations using n_measures (like all _std ) wont be correct.
-            
-            Repetitions are saved/loaded automatically in meta_info
-            Todos :
-                - Update the std calculations to include repetitions
-                - Anything else regarding that feature ?
-            Bugs :
+        n_mod       is the number of repetition before the reduction and analysis are run and data is saved
+        n_repetitions (internal variable _n_div = n_measures//n_mod) is the number of time the n_mod experiements are repeated
         """
-        for  rep in range(n_repetitions):
+        Reps = n_repetitions if n_repetitions else self._n_div
+        for  rep in range(Reps):            
             self._meta_info['repetitions'] += 1
             self._measurement_loop()
-    # def update_analysis   : (below)
-    # def save_data         : (below)
-    # def load_data         : (below)
+            if no_analysis:
+                pass
+            else :
+                self.update_analysis(**kwargs)
+            if no_save :
+                pass
+            else:
+                self.save_data(path_save=self._save_path,**kwargs)
     #############
     # Utilities #
     #############
@@ -740,7 +772,7 @@ class Experiment(Analysis):
     def _compute_reduction(self):
         pass
     def update_analysis(self,**kwargs):
-        return self._update_analysis_from_aquisition(**kwargs) if self._data_from_experiment else self._update_analysis_from_load(**kwargs)  
+        return self._update_analysis_from_aquisition(**kwargs) if self._data_from_experiment else self._update_analysis_from_load(**kwargs)
     def _update_analysis_from_aquisition(self,**kwargs) :
         self._compute_reduction()
         self._compute_analysis(**kwargs)
@@ -751,8 +783,8 @@ class Experiment(Analysis):
     #############
     # Save/load #
     ############# 
-    def save_data(self,path_save,prefix='exp_'):    
-        super(Experiment,self).save_data(path_save,prefix=prefix)
+    def save_data(self,path_save,prefix='exp_',**kwargs):
+        super(Experiment,self).save_data(path_save,prefix=prefix,**kwargs)
     def _check_cls_vs_data_versions(self):
         try : 
             versions_saved = self._versions_saved
