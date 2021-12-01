@@ -691,7 +691,7 @@ class Experiment(Analysis):
         else:
             try :
                 self.save_data(path_save=self._save_path,**kwargs)
-            else :
+            except :
                 print "Unable to save data"
     def measure(self,n_repetitions=None,**kwargs):
         """
@@ -699,10 +699,9 @@ class Experiment(Analysis):
         n_repetitions (internal variable _n_div = n_measures//n_mod) is the number of time the n_mod experiements are repeated
         """
         Reps = n_repetitions if n_repetitions else self._n_div
-        for  rep in range(Reps):
-            for chunk in range(self._n_measure):
-                self._meta_info['repetitions'] += 1
-                self._measurement_loop()
+        for  rep in range(Reps):            
+            self._meta_info['repetitions'] += 1
+            self._measurement_loop()
             self.update_analysis(**kwargs)
             self.save_data(path_save=self._save_path,**kwargs)
     #############
