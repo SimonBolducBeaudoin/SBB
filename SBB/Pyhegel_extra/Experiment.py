@@ -54,7 +54,6 @@ class logger(object):
           Bugs :
             -
     """   
- 
     __default__ = \
     {
         'loop_sizes': (1,),
@@ -66,8 +65,7 @@ class logger(object):
         'indent'    : 0,
         'rate'      : None,
     }
-    
-    def __init__( self,time_estimates=None , log_dict=None ,
+    def __init__( self,
         loop_sizes  =__default__['loop_sizes'] ,
         open        =__default__['open'] ,
         close       =__default__['close'] ,
@@ -84,7 +82,6 @@ class logger(object):
             # Indents the whole log
             # Option to print rate (EX: GSa/s) for each events
         """    
-        deprecated_args         = (time_estimates,log_dict)
         self._loop_sizes        = loop_sizes
         self._open_str          = open
         self._close_frmt        = close
@@ -112,78 +109,16 @@ class logger(object):
         self._events      = timer(self._events_len)
         for i in range(self._events_len):
             self._events.tic(i)
-            self._events.toc(i) 
-        ##############################################################
-        if (deprecated_args[1]): # reading only the second element because time_estimate as been removed anyway
-            self._deprecated_init(*deprecated_args,indent=indent)
-                      
-    def _deprecated_init(self,*deprecated_args,**options) :
-        """
-        This will eventually be deleted
-        Should not be used for compatibility with old code only
-        """
-        
-        _default_log = \
-        {
-            'loop_sizes': (1,),
-            'open'      : 'Lauching experiment' ,
-            'close'     : 'Experience over : \n \t Real time {:04.2F} [s]' ,
-            'loop'      : 'Progess {:03}/{:03d} \t last_loop time: {:04.2F} [s]' ,
-            'conditions': '{:04.1F}'
-            
-        }
-        _user_key_to_attribute_key = \
-        {
-            'loop_sizes'    : '_loop_sizes'  ,
-            'open'          : '_open_str'    ,
-            'close'         : '_close_frmt'  ,
-            'loop'          : '_loop_frmt'   ,
-            'is_rate'       : '_is_rate'     ,
-            'rate'          : '_event_rate'  ,
-            'is_event'      : '_is_event'    ,
-            'events'        : '_events'      ,
-            'conditions'    : '_conditions_frmt'
-        }
-        
-        def _log_dict_to_attributes(self,log_dict,conv):
-            for key in _default_log :  # set the attributes of the given log_dict or the default one when it doens't exist
-                setattr(self,conv[key],log_dict[key]) if key in log_dict else setattr(self,conv[key],_default_log[key])
-                
-        time_estimates , log_dict = deprecated_args
-        
-        if log_dict == () or log_dict == None : # Set the default log
-            dict_to_attr(self,_default_log,_user_key_to_attribute_key)
-        else :
-            _log_dict_to_attributes(self,log_dict,_user_key_to_attribute_key)
-        
-        self._is_rate    =   'rate' in log_dict
-        if self._is_rate :
-            self._event_rate = log_dict['rate']
-        self._experiment = timer()
-        self._experiment.tic()
-        self._experiment.toc()
-        self._loop       = timer(len(self._loop_sizes))
-        self._loop.tic()
-        self._loop.toc()
-        self._is_event   = log_dict.has_key('events')
-        if self._is_event :
-            self._events_dict = log_dict['events']
-            self._events_len  = len(self._events_dict)
-            self._events      = timer(self._events_len)
-        else :
-            self
-        self._events.tic(0)
-        self._events.toc(0)
-        self._conditions_frmt = log_dict['conditions_frmt'] if log_dict.has_key('conditions_frmt') else ('{: .1f}',)  
-        self.logger_indent      = options['indent'] if options.has_key('indent') else 0    
+            self._events.toc(i)
+        self.log_txt = '' # stores all prints 
     def indent(self,n):
         self.logger_indent = n
     def _print(self,s):
         ss =''
         for i in range(self.logger_indent) :
             ss += '\t'
+        self.log_txt += (s +'\n')   
         print ss + s
-        
     def open(self):
         self._experiment.tic()
         for i in range(len(self._loop_sizes)-1):
@@ -234,6 +169,14 @@ class logger(object):
             s_tuple += cnd_frmt.format(t) + ','
         s_tuple += ')'
         self._print(s_tuple + '\t' + s)
+    def history(self):
+        print(self.log_txt)
+    def save(self,path=None,filename='log',extension='.txt',time_stamp=False): 
+        time_stamp = '_' + time.strftime('%y%m%d-%H%M%S') if time_stamp else ''
+        path_save  = path if path else os.getcwd()
+        f          = open(path_save+os.sep+filename+time_stamp+extension,"w")
+        n          = f.write(self.log_txt)
+        f.close()
 
 class ExperimentErrors(Exception):
     """
@@ -678,9 +621,9 @@ class Experiment(Analysis):
     def _set_options(self,options):
         super(Experiment,self)._set_options(options)
         self._data_from_experiment  = not(options['loading_data']) if options.has_key('loading_data') else True
-        self._save_path = options.get('save_path',os.getcwd())
-        self._n_mod = options.get('n_mod',1)
-        self._estimated_time_per_loop = options['estimated_time_per_loop'] if options.has_key('estimated_time_per_loop') else 1.0
+        self._save_path             = options.get('save_path',os.getcwd())
+        self._n_mod                 = options.get('n_mod',1)
+        self._save_log              = options.get('save log',True)
         self._debug                 = options.get('debug')     
     def _SET_devices(self,devices):
         if devices == None or devices == () or self._data_from_experiment == False :
@@ -707,7 +650,7 @@ class Experiment(Analysis):
     #############
     # User interface #
     #############        
-    def measure(self,n_repetitions=None,no_analysis=False,no_save=False,**kwargs):
+    def measure(self,n_repetitions=None,no_analysis=False,no_save=False,save_log=True,**kwargs):
         """
         n_mod       is the number of repetition before the reduction and analysis are run and data is saved
         n_repetitions (internal variable _n_div = n_measures//n_mod) is the number of time the n_mod experiements are repeated
@@ -725,6 +668,10 @@ class Experiment(Analysis):
                 pass
             else:
                 self.save_data(path_save=self._save_path,**kwargs)
+        if self._save_log :
+            self._log.save(path=self._save_path,time_stamp=True)
+        else :
+            pass
     #############
     # Utilities #
     #############
