@@ -48,36 +48,5 @@ build/
 dist/
 *.egg-info/
 
-!.vscode/extensions.json
-!.vscode/launch.json
-!.vscode/settings.json
-!.vscode/tasks.json
-# Byte-compiled / optimized / DLL files
-# Distribution / packaging
-# JetBrains
-# Python
-# VSCode
-*$py.class
-*.egg
-*.egg-info/
-*.py[cod]
-.Python
-.eggs/
-.idea/
-.installed.cfg
-.vscode/*
-MANIFEST
-__pycache__/
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-lib/
-lib64/
-parts/
-pip-wheel-metadata/
-sdist/
-share/python-wheels/
-var/
-wheels/
+# setuptools-git-versioning
+*.eggs/
