@@ -171,10 +171,11 @@ class logger(object):
         self._print(s_tuple + '\t' + s)
     def history(self):
         print(self.log_txt)
-    def save(self,path=None,filename='log',extension='.txt'):
-        path_save = path if path else os.getcwd()
-        f = open(path_save+os.sep+filename+extension,"w")
-        n = f.write(self.log_txt)
+    def save(self,path=None,filename='log',extension='.txt',time_stamp=False): 
+        time_stamp = '_' + time.strftime('%y%m%d-%H%M%S') if time_stamp else ''
+        path_save  = path if path else os.getcwd()
+        f          = open(path_save+os.sep+filename+time_stamp+extension,"w")
+        n          = f.write(self.log_txt)
         f.close()
 
 class ExperimentErrors(Exception):
@@ -649,7 +650,7 @@ class Experiment(Analysis):
     #############
     # User interface #
     #############        
-    def measure(self,n_repetitions=None,no_analysis=False,no_save=False,**kwargs):
+    def measure(self,n_repetitions=None,no_analysis=False,no_save=False,save_log=True,**kwargs):
         """
         n_mod       is the number of repetition before the reduction and analysis are run and data is saved
         n_repetitions (internal variable _n_div = n_measures//n_mod) is the number of time the n_mod experiements are repeated
@@ -667,6 +668,10 @@ class Experiment(Analysis):
                 pass
             else:
                 self.save_data(path_save=self._save_path,**kwargs)
+        if self._print_log :
+            self._log.save(path=self._save_path,time_stamp=True)
+        else :
+            pass
     #############
     # Utilities #
     #############
