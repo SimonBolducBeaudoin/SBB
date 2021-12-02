@@ -86,7 +86,6 @@ class logger(object):
         self._open_str          = open
         self._close_frmt        = close
         self._loop_frmt         = loop
-        self._is_event          = True             # DEPRECATED : is now always true but I did'nt bother to make the changes outside of __init__
         self._events_dict       = events
         self._conditions_frmt   = conditions
         self.logger_indent      = indent
@@ -123,13 +122,11 @@ class logger(object):
         self._experiment.tic()
         for i in range(len(self._loop_sizes)-1):
             self._loop.tic(i)
-        if self._is_event :
-            self._events.tic(0)
+        self._events.tic(0)
         self._print(self._open_str)
     def close(self):
         self._experiment.toc()
-        if self._is_event :
-             self._events.toc(self._events_len-1)
+        self._events.toc(self._events_len-1)
         total_t = self._experiment.durations()[0]
         self._print((self._close_frmt).format(total_t))
     def loop(self,loop_index,loop_icrmnt):
