@@ -109,15 +109,16 @@ class logger(object):
         self._events      = timer(self._events_len)
         for i in range(self._events_len):
             self._events.tic(i)
-            self._events.toc(i)               
+            self._events.toc(i)
+        self.log_txt = '' # stores all prints 
     def indent(self,n):
         self.logger_indent = n
     def _print(self,s):
         ss =''
         for i in range(self.logger_indent) :
             ss += '\t'
+        self.log_txt += (s +'\n')   
         print ss + s
-        
     def open(self):
         self._experiment.tic()
         for i in range(len(self._loop_sizes)-1):
@@ -168,6 +169,13 @@ class logger(object):
             s_tuple += cnd_frmt.format(t) + ','
         s_tuple += ')'
         self._print(s_tuple + '\t' + s)
+    def history(self):
+        print(self.log_txt)
+    def save(self,path=None,filename='log',extension='.txt'):
+        path_save = path if path else os.getcwd()
+        f = open(path_save+os.sep+filename+extension,"w")
+        n = f.write(self.log_txt)
+        f.close()
 
 class ExperimentErrors(Exception):
     """
