@@ -19,5 +19,17 @@ setuptools.setup(
     ],
     packages=setuptools.find_packages(),
     include_package_data=True,
-    zip_safe=False
+    zip_safe=False, 
+    version_config={
+        "template": "{tag}",
+        "dev_template": "{tag}.post{ccount}+git.{sha}",
+        "dirty_template": "{tag}.post{ccount}+git.{sha}.dirty",
+        "starting_version": "0.0.19",
+        "version_callback": None,
+        "version_file": None,
+        "count_commits_from_version_file": False,
+        "branch_formatter": None,
+        "sort_by": None,
+        }, 
+    setup_requires=["setuptools-git-versioning"],
 )
