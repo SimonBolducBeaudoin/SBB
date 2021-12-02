@@ -621,9 +621,9 @@ class Experiment(Analysis):
     def _set_options(self,options):
         super(Experiment,self)._set_options(options)
         self._data_from_experiment  = not(options['loading_data']) if options.has_key('loading_data') else True
-        self._save_path = options.get('save_path',os.getcwd())
-        self._n_mod = options.get('n_mod',1)
-        self._estimated_time_per_loop = options['estimated_time_per_loop'] if options.has_key('estimated_time_per_loop') else 1.0
+        self._save_path             = options.get('save_path',os.getcwd())
+        self._n_mod                 = options.get('n_mod',1)
+        self._save_log              = options.get('save log',True)
         self._debug                 = options.get('debug')     
     def _SET_devices(self,devices):
         if devices == None or devices == () or self._data_from_experiment == False :
@@ -668,7 +668,7 @@ class Experiment(Analysis):
                 pass
             else:
                 self.save_data(path_save=self._save_path,**kwargs)
-        if self._print_log :
+        if self._save_log :
             self._log.save(path=self._save_path,time_stamp=True)
         else :
             pass
