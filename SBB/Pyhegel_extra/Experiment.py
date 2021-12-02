@@ -442,8 +442,8 @@ class Analysis(Info):
         else :
             # allows memory mapping (more efficient for huge arrays)
             for key in to_save:
-                filename = k+'_{}.npy'.format(time_stamp)
-                numpy.save(os.path.join(path_save,filename),to_save[k],allow_pickle=True,fix_imports=True)
+                filename = key+'_{}.npy'.format(time_stamp)
+                numpy.save(os.path.join(path_save,filename),to_save[key],allow_pickle=True,fix_imports=True)
         print "Data saved \n \t folder : {} \n \t {}".format(path_save,filename) 
     def _load_data_dict(self,data_dict):
         dict_to_attr(self,data_dict)
