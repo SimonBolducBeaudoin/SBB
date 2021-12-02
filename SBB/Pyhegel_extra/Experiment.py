@@ -488,17 +488,22 @@ class Analysis(Info):
     #############
     def save_data(self,path_save,prefix='anal_',**kwargs):    
         time_stamp                  = time.strftime('%y%m%d-%H%M%S') # File name will correspond to when the experiment ended
-        filename                    = prefix+'{}.npz'.format(time_stamp)
         to_save                     = self._data
         to_save['SBB_version']      = __SBB_version__
         to_save['_options']         = self._options
         to_save['_conditions']      = self._conditions
         to_save['_meta_info']       = self._meta_info
         if (kwargs.get('format')=='compress'):
+            filename = prefix+'{}.npz'.format(time_stamp)
             numpy.savez_compressed(os.path.join(path_save,filename),**to_save)
+        elif (kwargs.get('format')=='zip'):
+            filename = prefix+'{}.npz'.format(time_stamp)
+            numpy.savez(os.path.join(path_save,filename),**to_save)
         else :
             # allows memory mapping (more efficient for huge arrays)
-            numpy.save(os.path.join(path_save,filename),to_save,allow_pickle=True,fix_imports=True)
+            for key in to_save:
+                filename = k+'_{}.npy'.format(time_stamp)
+                numpy.save(os.path.join(path_save,filename),to_save[k],allow_pickle=True,fix_imports=True)
         print "Data saved \n \t folder : {} \n \t {}".format(path_save,filename) 
     def _load_data_dict(self,data_dict):
         dict_to_attr(self,data_dict)
