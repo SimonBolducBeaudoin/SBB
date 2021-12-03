@@ -48,11 +48,8 @@ class logger(object):
             loop
                 loop_events
         end
-        
         Todos :
-            - Modifiy the _print() to save (or not) the string of log into a file
-          Bugs :
-            -
+        Bugs :
     """   
     __default__ = \
     {
@@ -651,7 +648,7 @@ class Experiment(Analysis):
         else :
             self._init_log()  
     def _init_log(self):
-        self._log            =   logger((),()) # Default timer    
+        self._log            =   logger() # Default timer    
     #############
     # User interface #
     #############        
