@@ -48,11 +48,8 @@ class logger(object):
             loop
                 loop_events
         end
-        
         Todos :
-            - Modifiy the _print() to save (or not) the string of log into a file
-          Bugs :
-            -
+        Bugs :
     """   
     __default__ = \
     {
@@ -299,13 +296,6 @@ class Accretion(object):
     def __init__(self, exp):
         self.exp = exp
     #############
-    # User interface #
-    #############
-    # def update_analysis   : (below)
-    # def save_data         : (below)
-    # def load_data         : (below)
-    # def get_data_dict     : (below)
-    #############
     # Utilities #
     #############
     def get_data_dict(self):
@@ -381,13 +371,6 @@ class Analysis(Info):
         self._set_meta_info(meta_info)
         self._build_attributes()
         self._load_data_dict(data_dict)
-    #############
-    # User interface #
-    #############
-    # def update_analysis   : (below)
-    # def save_data         : (below)
-    # def load_data         : (below)
-    # def get_data_dict     : (below)
     ######################
     # Analysis Utilities #
     ######################
@@ -426,25 +409,27 @@ class Analysis(Info):
     #############
     # Save/load #
     #############
-    def save_data(self,path_save,prefix='anal_',**kwargs):    
+    def save_data(self,path_save,prefix='anal_',format='zip',**kwargs):    
         time_stamp                  = time.strftime('%y%m%d-%H%M%S') # File name will correspond to when the experiment ended
         to_save                     = self._data
         to_save['SBB_version']      = __SBB_version__
         to_save['_options']         = self._options
         to_save['_conditions']      = self._conditions
         to_save['_meta_info']       = self._meta_info
-        if (kwargs.get('format')=='compress'):
+        if ( (format=='compressed') or (format=='npz compressed') or (format=='savez_compressed')):
             filename = prefix+'{}.npz'.format(time_stamp)
             numpy.savez_compressed(os.path.join(path_save,filename),**to_save)
-        elif (kwargs.get('format')=='zip'):
-            filename = prefix+'{}.npz'.format(time_stamp)
-            numpy.savez(os.path.join(path_save,filename),**to_save)
-        else :
+            print "Data saved \n \t folder : {} \n \t {}".format(path_save,filename)
+        elif ((format=='npy') or (format=='save') or (format=='uncompressed')) :
             # allows memory mapping (more efficient for huge arrays)
             for key in to_save:
                 filename = key+'_{}.npy'.format(time_stamp)
                 numpy.save(os.path.join(path_save,filename),to_save[key],allow_pickle=True,fix_imports=True)
-        print "Data saved \n \t folder : {} \n \t {}".format(path_save,filename) 
+                print "Data saved \n \t folder : {} \n \t {}".format(path_save,filename)
+        else : # format=='zip'
+            filename = prefix+'{}.npz'.format(time_stamp)
+            numpy.savez(os.path.join(path_save,filename),**to_save)
+            print "Data saved \n \t folder : {} \n \t {}".format(path_save,filename)
     def _load_data_dict(self,data_dict):
         dict_to_attr(self,data_dict)
         self._data  = data_dict
@@ -648,11 +633,11 @@ class Experiment(Analysis):
         else :
             self._init_log()  
     def _init_log(self):
-        self._log            =   logger((),()) # Default timer    
+        self._log            =   logger() # Default timer    
     #############
     # User interface #
     #############        
-    def measure(self,n_repetitions=None,no_analysis=False,no_save=False,save_log=True,**kwargs):
+    def measure(self,n_repetitions=None,no_analysis=False,no_save=False,save_log=True,save_format='zip',**kwargs):
         """
         n_mod       is the number of repetition before the reduction and analysis are run and data is saved
         n_repetitions (internal variable _n_div = n_measures//n_mod) is the number of time the n_mod experiements are repeated
@@ -669,7 +654,7 @@ class Experiment(Analysis):
             if no_save :
                 pass
             else:
-                self.save_data(path_save=self._save_path,**kwargs)
+                self.save_data(path_save=self._save_path,format=save_format,**kwargs)
         if self._save_log :
             self._log.save(path=self._save_path,time_stamp=True)
         else :
