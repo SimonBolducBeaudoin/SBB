@@ -640,7 +640,7 @@ class Experiment(Analysis):
     #############
     # User interface #
     #############        
-    def measure(self,n_repetitions=None,no_analysis=False,no_save=False,save_log=True,**kwargs):
+    def measure(self,n_repetitions=None,no_analysis=False,no_save=False,save_log=True,save_format='zip',**kwargs):
         """
         n_mod       is the number of repetition before the reduction and analysis are run and data is saved
         n_repetitions (internal variable _n_div = n_measures//n_mod) is the number of time the n_mod experiements are repeated
@@ -657,7 +657,7 @@ class Experiment(Analysis):
             if no_save :
                 pass
             else:
-                self.save_data(path_save=self._save_path,**kwargs)
+                self.save_data(path_save=self._save_path,format=save_format,**kwargs)
         if self._save_log :
             self._log.save(path=self._save_path,time_stamp=True)
         else :
