@@ -450,7 +450,7 @@ class Analysis(Info):
             versions_saved = self.SBB_version
         except AttributeError :
             versions_saved = None
-        version = self.__SBB_version__
+        version = __SBB_version__
         if ( version != versions_saved ) and versions_saved:
             VersionsWarning.warn(version,versions_saved)
     @classmethod
@@ -777,7 +777,7 @@ class Experiment(Analysis):
             versions_saved = self._versions_saved
         except AttributeError :
             versions_saved = None
-        version = self.__SBB_version__
+        version = __SBB_version__
         if not ( version == versions_saved ):
             VersionsWarning.warn(version,versions_saved)
     @classmethod
