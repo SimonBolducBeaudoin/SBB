@@ -165,7 +165,8 @@ class logger(object):
         self._print(s_tuple + '\t' + s)
     def history(self):
         print(self.log_txt)
-    def save(self,path=None,filename='log',extension='.txt',time_stamp=False): 
+    def save(self,path=None,filename='log',extension='.txt',time_stamp=False,prefix=''): 
+        filename   += prefix
         time_stamp = '_' + time.strftime('%y%m%d-%H%M%S') if time_stamp else ''
         path_save  = path if path else os.getcwd()
         f          = open(path_save+os.sep+filename+time_stamp+extension,"w")
@@ -249,7 +250,9 @@ class Info(object):
         self._verbose                   = options.get('verbose')
         self._test                      = options['test']    if options.has_key('test') else True 
     def _set_conditions(self,conditions):
-        self._conditions                = conditions
+        # Force mutability
+        # This could be better manage using type hinting in the constructor
+        self._conditions                = list(conditions)
         if type(conditions[0]) != int :
             raise ConditionsError('n_measures should be int')
         self._n_measures                = conditions[0]         # The first element of the tuple is the number of repetions
@@ -409,25 +412,31 @@ class Analysis(Info):
     #############
     # Save/load #
     #############
-    def save_data(self,path_save,prefix='anal_',format='zip',**kwargs):    
+    def save_data(self,path_save,prefix='anal_',ignore=False,format='compressed',**kwargs):    
         time_stamp                  = time.strftime('%y%m%d-%H%M%S') # File name will correspond to when the experiment ended
         to_save                     = self._data
         to_save['SBB_version']      = __SBB_version__
         to_save['_options']         = self._options
         to_save['_conditions']      = self._conditions
         to_save['_meta_info']       = self._meta_info
-        if ( (format=='compressed') or (format=='npz compressed') or (format=='savez_compressed')):
-            filename = prefix+'{}.npz'.format(time_stamp)
+        if ( (format=='compressed') or (format=='npz compressed') or (format=='.npz') or (format=='savez_compressed')):
+            extension = '.npz'
+            extension += '.ignore' if ignore else ''
+            filename = prefix+'{}'.format(time_stamp) + extension
             numpy.savez_compressed(os.path.join(path_save,filename),**to_save)
             print "Data saved \n \t folder : {} \n \t {}".format(path_save,filename)
-        elif ((format=='npy') or (format=='save') or (format=='uncompressed')) :
+        elif ((format=='npy') or (format=='save') or (format=='uncompressed') or (format=='.npy')) :
             # allows memory mapping (more efficient for huge arrays)
+            extension = '.npy'
+            extension += '.ignore' if ignore else ''
             for key in to_save:
-                filename = key+'_{}.npy'.format(time_stamp)
+                filename = key+'_{}'.format(time_stamp) + extension
                 numpy.save(os.path.join(path_save,filename),to_save[key],allow_pickle=True,fix_imports=True)
                 print "Data saved \n \t folder : {} \n \t {}".format(path_save,filename)
         else : # format=='zip'
-            filename = prefix+'{}.npz'.format(time_stamp)
+            extension = '.npz'
+            extension += '.ignore' if ignore else ''
+            filename = prefix+'{}'.format(time_stamp) + extension
             numpy.savez(os.path.join(path_save,filename),**to_save)
             print "Data saved \n \t folder : {} \n \t {}".format(path_save,filename)
     def _load_data_dict(self,data_dict):
@@ -438,7 +447,7 @@ class Analysis(Info):
             versions_saved = self.SBB_version
         except AttributeError :
             versions_saved = None
-        version = self.__SBB_version__
+        version = __SBB_version__
         if ( version != versions_saved ) and versions_saved:
             VersionsWarning.warn(version,versions_saved)
     @classmethod
@@ -637,12 +646,23 @@ class Experiment(Analysis):
     #############
     # User interface #
     #############        
-    def measure(self,n_repetitions=None,no_analysis=False,no_save=False,save_log=True,save_format='zip',**kwargs):
+    def measure(self,n_repetitions=None,save_path=None,save_prefix='exp_',ignore_flag=False,save_format='compressed',save_log=True,log_inherits_prefix=False,no_analysis=False,no_save=False,**kwargs):
         """
         n_mod       is the number of repetition before the reduction and analysis are run and data is saved
         n_repetitions (internal variable _n_div = n_measures//n_mod) is the number of time the n_mod experiements are repeated
+        
+        kwargs definitions
+        ------------------
+            - Repetitions   int           : overwrites the internal number of repetitions (self._n_div)
+                Therefore the experiment will run self._n_mod * n_repetitions times
+                and will be saved every self._n_mod times
+            - save_path     str           : overwrites internal self._save_path (defined in options using the constructor)
+            - save_prefix   str           : is a prefix added to the saved files names
+            - ignore_flag   True or False : adds .ignore extension if true (usefull to flag files that to big to be back up with Unison)
+            - save_format   str           : 'compressed' , 'zip' or 'npy'
         """
-        Reps = n_repetitions if n_repetitions else self._n_div
+        Reps        = n_repetitions if n_repetitions    else self._n_div
+        save_path   = save_path     if save_path        else self._save_path
         for  rep in range(Reps):
             self.reset_objects()                # this is done here so that ojbects are available for auscultation
             self._meta_info['repetitions'] += 1
@@ -653,10 +673,11 @@ class Experiment(Analysis):
                 self.update_analysis(**kwargs)
             if no_save :
                 pass
-            else:
-                self.save_data(path_save=self._save_path,format=save_format,**kwargs)
+            else:               
+                self.save_data(path_save=save_path,prefix=save_prefix,ignore=ignore_flag,format=save_format,**kwargs)
         if self._save_log :
-            self._log.save(path=self._save_path,time_stamp=True)
+            log_prefix = save_prefix if log_inherits_prefix else ''
+            self._log.save(path=save_path,filename='log',time_stamp=True,prefix=log_prefix)
         else :
             pass
     #############
@@ -746,14 +767,14 @@ class Experiment(Analysis):
     #############
     # Save/load #
     ############# 
-    def save_data(self,path_save,prefix='exp_',**kwargs):
-        super(Experiment,self).save_data(path_save,prefix=prefix,**kwargs)
+    def save_data(self,path_save,prefix='exp_',ignore=False,format='compressed',**kwargs):
+        super(Experiment,self).save_data(path_save,prefix=prefix,ignore=ignore,format=format,**kwargs)
     def _check_cls_vs_data_versions(self):
         try : 
             versions_saved = self._versions_saved
         except AttributeError :
             versions_saved = None
-        version = self.__SBB_version__
+        version = __SBB_version__
         if not ( version == versions_saved ):
             VersionsWarning.warn(version,versions_saved)
     @classmethod
