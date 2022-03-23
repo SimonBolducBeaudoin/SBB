@@ -426,7 +426,7 @@ class Guzik_wrapper(Pyhegel_wrapper):
             return Guzik_wrapper.__dummy_config__
     def read_config(self):
         if not self._debug : 
-            return self._gz._gsa_data_res_arr[0].common.ampl_resolution
+            return self._gz._read_config()
         else :
             return None
     def get_mv_per_bin(self,channel=1):
