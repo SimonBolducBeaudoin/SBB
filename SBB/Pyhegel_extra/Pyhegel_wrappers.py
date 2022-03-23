@@ -434,6 +434,15 @@ class Guzik_wrapper(Pyhegel_wrapper):
             return self._gz._read_config()['conv_resolution'][channel-1]*1000
         else :
             return 1.0
+    def get_offset(self):
+        """
+            Subtract this amount to get the equivalent int number
+        """
+        if not self._debug : 
+            return self._gz._read_config()['conv_offset']
+        else :
+            return 0.
+    
     def get(self):
         if not self._debug : 
             return get(self._gz)
