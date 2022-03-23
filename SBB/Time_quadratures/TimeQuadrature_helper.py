@@ -122,10 +122,10 @@ def gen_gauss_Filters(l_kernel,dt,gauss_info):
 def gen_bigauss_Filters(l_kernel,dt,bigauss_info):
     fs , dfs    = _extract_bigauss_info(bigauss_info)
     snap_on     = _checks_snap_on(**bigauss_info)
-    if fs.shape[1] !=2 :
-        raise Exception('bigauss_indexes needs to be n by 2.')
     if fs.size == 0 :
         return numpy.array([])
+    if fs.shape[1] !=2 :
+        raise Exception('bigauss_indexes needs to be n by 2.')
     if snap_on :
         F   = gen_f_abscisse(l_kernel,dt)
         fs,_  = find_nearest_A_to_a(fs,F)
