@@ -426,14 +426,23 @@ class Guzik_wrapper(Pyhegel_wrapper):
             return Guzik_wrapper.__dummy_config__
     def read_config(self):
         if not self._debug : 
-            return self._gz._gsa_data_res_arr[0].common.ampl_resolution
-        else :
-            return None
-    def get_mv_per_bin(self):
-        if not self._debug : 
             return self._gz._read_config()
         else :
+            return None
+    def get_mv_per_bin(self,channel=1):
+        if not self._debug : 
+            return self._gz._read_config()['conv_resolution'][channel-1]*1000
+        else :
             return 1.0
+    def get_offset(self):
+        """
+            Subtract this amount to get the equivalent int number
+        """
+        if not self._debug : 
+            return self._gz._read_config()['conv_offset']
+        else :
+            return 0.
+    
     def get(self):
         if not self._debug : 
             return get(self._gz)
