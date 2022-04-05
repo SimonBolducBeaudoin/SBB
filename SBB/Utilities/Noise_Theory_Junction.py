@@ -5,6 +5,8 @@ from pylab import *
 from scipy.special import jv as besselJ
 import scipy.constants as C
 
+from Memoize import MemoizeMutable
+
 ###############
 # Description #
 ###############
@@ -24,33 +26,6 @@ Default units are A² for autocovariance and A²/Hz for spectral densities.
     - Or you can multiply the A²/Hz result by R/(2*C.k).
 """
 
-#####################
-# General Functions #
-#####################
-
-try:
-    import cPickle
-    
-    class MemoizeMutable:
-        def __init__(self, fn, verbose=False):
-            self.fn = fn
-            self.memo = {}
-            self.verbose=verbose
-        def __call__(self, *args, **kwds):
-            str = cPickle.dumps(args, 1)+cPickle.dumps(kwds, 1)
-            if not self.memo.has_key(str): 
-                self.memo[str] = self.fn(*args, **kwds)
-                if self.verbose:
-                    print "MISS"
-            else:
-                if self.verbose:
-                    print "HIT"
-            return self.memo[str]
-    
-    print "Will use memoization"
-except:
-    MemoizeMutable = lambda x: x
-    print "Will NOT use memoization"
 
 #################################################################################
 def coth(x):

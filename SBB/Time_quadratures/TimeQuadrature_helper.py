@@ -298,7 +298,7 @@ def _concatenate_Filters(*args):
 # From old QsVsVdc_analysis
 ##################################
 
-def compute_cumulants(moments,axis=0):
+def compute_cumulants(moments,axis=0,folding_factor=0.5):
     """
         Computes cumulant associated with <q**n>
         
@@ -324,9 +324,9 @@ def compute_cumulants(moments,axis=0):
     moments = moments.swapaxes(axis,0)
     shape = (moments.shape[0]-1,) + moments.shape[1:]
     cumulants           = numpy.zeros( shape ,dtype=float)
-    cumulants[0,...]    = moments[0,...] 
-    cumulants[1,...]    = moments[1,...] 
-    cumulants[2,...]    = moments[2,...]     - 3.0*(moments[1,...] + 0.5 )**2  # <p**4> -3 <p**2> **2
+    cumulants[0,...]    = moments[0,...] * (folding_factor)**(0.5) ## is this correct ???
+    cumulants[1,...]    = moments[1,...] * folding_factor
+    cumulants[2,...]    = ( moments[2,...]     - 3.0*(moments[1,...] + 0.5 )**2  ) * folding_factor**2 # <p**4> -3 <p**2> **2
     return cumulants.swapaxes(axis,0)  
 
 def get_conditions_slice(**ref_options):
@@ -392,36 +392,3 @@ def fit_of_C4(C4_s,C2_3_s,V_th_slice,axis=-1,p0=(1.0,),verbose=False):
 
 def compute_fano(dn2,n):
     return dn2/n
-
-###########################
-# No Man's land 
-#############################
-class moments_cumulants_helper():
-    __version__     = { 'moments_cumulants_helper'  : 0.1 }
-    @staticmethod
-    def compute_s0_square_s1_square_sample(C4_0_sample,C4_1_sample,C4_0_and_1_sample,mu_01_square_sample=0.0):
-        """
-        (see Notes Bertrand n1n2 vs cumulants.pdf for details)
-        Returns <<s0**2s1**2>>_sample = <<s0**2s1**2>>(V) - <<s0**2s1**2>>(V=0) 
-        
-        For a signal like
-            p_i = s_i + a 
-                where p_i is the signal after amplification
-                s_i is the sample signal
-                a is the signal added by the amplifications
-                
-        Notation :
-            <<X^n>>(V) =  <<X^n>>_sample + <<X^n>>_0
-        
-        C4_0_sample         = <<p_0^4>>(V) - <<p_0^4>>(0)
-        C4_0_and_1_sample   = <<p_0^4 + p_1^4>>(V) - <<p_0^4 + p_1^4>>(0)
-        mu_01_square_sample = <s_0s_1>**2(V) - <s_0s_1>**2(V=0)
-        
-        For any two centered statistical variables p_0 and p_1
-        we have :
-            6*<<s0**2s1**2>>_sample 
-        =   <<p_0+p_1)^4>>_sample  - <<p_0^4>>_sample - <<p_1^4>>_sample + 2 mu_01_square_sample
-        If p_0 and p_1 are statistically independent then mu_01_square_sample = 0 hence the default value 
-        """
-        return (1.0/6.0)*(C4_0_and_1_sample-C4_0_sample-C4_1_sample + 2.0*mu_01_square_sample) 
-
