@@ -32,3 +32,7 @@ In anaconda promt (or any python environment)
 ```console
 foo@bar:~$ python setup.py install
 ```
+Or 
+```console
+foo@bar:~$ python setup.py develop
+```
