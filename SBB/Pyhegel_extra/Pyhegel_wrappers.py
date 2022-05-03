@@ -392,9 +392,25 @@ class Guzik_wrapper(Pyhegel_wrapper):
     __dummy_config__ = {'conv_resolution':r_[1.0]}
     _gz_instance =   [] 
     counter     =   [0]     
-    def __init__(self,**options):
+    def __init__(self,debug=False,verification_data=None ):
+        """
+            Comment to be eventually deleted and info integrated to documentation
+            
+            Made the constructor more explicit for keywords so that the signature would carry more info
+            
+            Added verification_data 
+                if None 
+                    gz bahaves normally
+                else : 
+                    it is an array of shape (N,l_data) given by the user
+                    and get will iterate through that array. So effectivelly it 
+                    bypasses the get function and return a predertermined vector.
+                    Additionnaly the get function is going to get a force argument to
+                    force the real aquisition if verification_data is used.
+        """
         self.counter[0] += 1
-        self._debug  = options.get('debug')
+        self._debug  = debug
+        self._v_data = verification_data
         self.__load_guzik__()
         self._gz = self._gz_instance[0] 
     def __del__(self):
@@ -443,9 +459,12 @@ class Guzik_wrapper(Pyhegel_wrapper):
         else :
             return 0.
     
-    def get(self):
-        if not self._debug : 
+    def get(self,force_aquisition=False,force_verification=False):
+        if ( ( (not self._debug) and (not force_verification) ) or force_aquisition ): 
             return get(self._gz)
+        elif force_verification :
+            print "get verification data "
+            return self._v_data
         else :
             print "get Guzik "
             return self._dummy_data[0,:]
