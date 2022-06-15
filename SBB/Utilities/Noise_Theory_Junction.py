@@ -263,6 +263,11 @@ def _Sphi_of_f(phi,omega,nu,nuac,Omega,Te,R,nBessel=21):
     return 0.5*(exp(-1j*z*sin(phi))*dot(bessels,Sds_m) + exp(+1j*z*sin(phi))*dot(bessels,Sds_p))
 Sphi_of_f = MemoizeMutable(vectorize(_Sphi_of_f))
 
+def _Spa_adiabatique(omega, phi, nu, nuac, Te, R) :
+    dphi  = phi[1] - phi[0]
+    return (1./(2*pi)) * Sdc_of_f( omega, nu + nuac , Te , R ).sum(axis=0) * dphi
+_Spa_adiabatique = MemoizeMutable(vectorize(_Spa_adiabatique))
+
 def _betap(p,f,nu,Te,nuac,Omega,R,nBessel=21):
     omega = 2.0*pi*f
     if p==0:
