@@ -54,15 +54,15 @@ class Dummy(Pyhegel_wrapper):
         A dummy device that implement only default behavior and prints what it does.
     """
     def get_pyhegel_instance(self):
-        print "get_pyhegel_instance"
+        print("get_pyhegel_instance)")
     def set_init_state(self,val):
-        print "set_init_state :{}".format(val)
+        print("set_init_state :{}".format(val))
     def set_close_state(self):
-        print "set_close_state"
+        print("set_close_state")
     def get(self):
-        print "get"
+        print("get")
     def set(self,val):
-        print "set :{}".format(val)
+        print("set :{}".format(val))
 
 class Lakeshore_wrapper(Pyhegel_wrapper):
     """ 
@@ -110,7 +110,7 @@ class Lakeshore_wrapper(Pyhegel_wrapper):
             self._lakeshore =  instruments.lakeshore_370(visa_addr)
             self.set_current_ch(6) # The 6th channel is the temperature of the sample
         if self._verbose :
-            print "Current channel is : {} \n and has temperature = {} K".format( self._lakeshore.current_ch.get(), self.get_temperature())
+            print("Current channel is : {} \n and has temperature = {} K".format( self._lakeshore.current_ch.get(), self.get_temperature()))
     #############
     # User interface #
     #############
@@ -128,7 +128,7 @@ class Lakeshore_wrapper(Pyhegel_wrapper):
             pass
         else :
             if (self._verbose or verbose) :
-                print "get out of t.under"
+                print("get out of t.under")
             ch_sample       = 6         # ch=6 : mixing chamber
             T_target_out    = 0.015     # = 15[mK] : get the value from table 
             heating_power   = 6.0e-6    # [W] 100% of ther targeted range   
@@ -145,10 +145,10 @@ class Lakeshore_wrapper(Pyhegel_wrapper):
                     if t > t_th :
                         break
                     if (self._verbose or verbose) :
-                        print "Waiting to get out of t.under"
+                        print("Waiting to get out of t.under")
                     wait(wait_time)
             if (self._verbose or verbose) :
-                print "setting lakeshore to close loop"
+                print ("setting lakeshore to close loop")
             self._set_to_close_loop()
     def cooldown(self):
         if self._debug :
@@ -190,7 +190,7 @@ class Lakeshore_wrapper(Pyhegel_wrapper):
             pass
         else :
             if (self._verbose or verbose) :
-                print "Stabilizing to {}[K]".format(T)
+                print("Stabilizing to {}[K]".format(T))
             try :
                 if T > self._temperature_range[0] :
                     self._getout_tunder(verbose)
@@ -294,24 +294,24 @@ class Yoko_wrapper(Pyhegel_wrapper):
         self._debug  = options.get('debug')
     def get(self):
         if self._debug :
-            print "get Yoko : {:0.2f}[V]".format(self._V_dummy)
+            print("get Yoko : {:0.2f}[V]".format(self._V_dummy))
             return self._V_dummy
         else :
             return get(self._yoko)
     def set(self,V):
         if self._debug :
             self._V_dummy = V
-            print "set Yoko : {:0.2f}[V]".format(V)
+            print("set Yoko : {:0.2f}[V]".format(V))
         else :
             set(self._yoko,V)
     def set_output(self,booleen):
         if self._debug :
-            print "set Yoko outpout : {}".format(booleen)
+            print("set Yoko outpout : {}".format(booleen))
         else :
             set(self._yoko.output_en, booleen)
     def set_range(self,val):
         if self._debug :
-            print "set Yoko range : {}".format(val)
+            print("set Yoko range : {}".format(val))
         else :
             set(self._yoko.range,val)
     """
@@ -427,10 +427,10 @@ class Guzik_wrapper(Pyhegel_wrapper):
         if not self._debug : 
             try:
                 if not isinstance(self._gz_instance[0], instruments.guzik.guzik_adp7104):
-                    print "\nLoading guzik :"
+                    print("\nLoading guzik :")
                     self._gz_instance.append( instruments.guzik_adp7104() )
             except:
-                print "\nLoading guzik :"
+                print("\nLoading guzik :")
                 self._gz_instance.append( instruments.guzik_adp7104() )
         else :
             self._gz_instance.append(None)
@@ -463,10 +463,10 @@ class Guzik_wrapper(Pyhegel_wrapper):
         if ( ( (not self._debug) and (not force_verification) ) or force_aquisition ): 
             return get(self._gz)
         elif force_verification :
-            print "get verification data "
+            print("get verification data ")
             return self._v_data
         else :
-            print "get Guzik "
+            print("get Guzik ")
             return self._dummy_data[0,:]
     def get_pyhegel_instance(self):
         return self._gz
@@ -519,12 +519,12 @@ class PSG_wrapper(Pyhegel_wrapper):
             return (f,dbm)
     def set_freq(self,f):
         if self._debug :
-            print "set PSG : {:0.2f}[GHz]".format(f*1.e-9)
+            print("set PSG : {:0.2f}[GHz]".format(f*1.e-9))
         else :
             set(self._psg.freq_cw,f)
     def set_ampl(self,dBm):
         if self._debug :
-            print "set PSG : {:0.2f}[dBm]".format(dBm)
+            print("set PSG : {:0.2f}[dBm]".format(dBm))
         else :
             set(self._psg.ampl,dBm)           
     def set_output(self,booleen):

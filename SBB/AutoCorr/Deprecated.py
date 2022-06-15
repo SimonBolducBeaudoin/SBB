@@ -192,7 +192,10 @@ class Tunnel_junction(object):
             tuple :
                 The fitting parameters
         """
-        def out(I,(Te,G,b)):
+        def out(I,tup): #tup=(Te, G, b)
+            Te = tup[0]
+            G=tup[1]
+            b=tup[2]
             return func(I,f,Te,R,G,b)[:,0] if amplified else func(I,f,Te,R)[:,0]
         return out
     @staticmethod
@@ -200,7 +203,9 @@ class Tunnel_junction(object):
         """
             Compatible with SII_dc_A2
         """
-        def out(f,(Te,R)):
+        def out(f,tup): #tup=(Te,R)
+            Te=tup[0]
+            R=tup[1]
             return func(I,f,Te,R)[0,:]
         return out
     @staticmethod
@@ -208,6 +213,7 @@ class Tunnel_junction(object):
         """
             Compatible with SII_dc_A2
         """
-        def out(f,(Te)):
+        def out(f,tup): #tup=Te
+            Te=tup[0]
             return func(I,f,Te,R)[0,:]
         return out
