@@ -5,7 +5,7 @@ from pylab import *
 from scipy.special import jv as besselJ
 import scipy.constants as C
 
-from Memoize import MemoizeMutable
+from SBB.Utilities.Memoize import MemoizeMutable
 
 ###############
 # Description #

@@ -91,7 +91,7 @@ def centered_moment(hx,hs,exp,n_total,no_clip=True):
     tmp = (((hx[None,None,:]-mu[...,None])**exp)*hs)
     tmp = tmp[...,1:-1] if no_clip else tmp
     return (tmp.sum(axis=-1))/n_total  
-
+    
 def SE(mu2k,muk,n):
     """ 
         Voir notes Virally Central limit theorem
@@ -276,7 +276,7 @@ class fit:
         """
         self.lsq = leastsq(self._residuals,self.para,full_output=self.fullo)
         if self.lsq[1] is None:
-            if self.verbose: print '\n --- FIT DID NOT CONVERGE ---\n'
+            if self.verbose: print('\n --- FIT DID NOT CONVERGE ---\n')
             self.err = None
             self.chi2r = None
             return False
@@ -292,7 +292,7 @@ class fit:
 #            for i in range(len(self.para)):
 #                self.donnee.append(d.donnee(self.para[i],self.err[i]))
             if self.verbose:
-                print self
+                print(self)
             return True
     def model(self,x,p):
         """

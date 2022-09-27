@@ -19,7 +19,7 @@ try: #Python 2
             if not self.memo.has_key(str): 
                 self.memo[str] = self.fn(*args, **kwds)      
             return self.memo[str]   
-    print "Will use memoization"
+    print("Will use memoization")
 except ModuleNotFoundError: #Python 3
     import pickle
     
@@ -33,7 +33,7 @@ except ModuleNotFoundError: #Python 3
             if not str in self.memo: 
                 self.memo[str] = self.fn(*args, **kwds)
             return self.memo[str] 
-    print ("Will use memoization")
+    print("Will use memoization")
 except:
     MemoizeMutable = lambda x: x
-    print "Will NOT use memoization"
+    print("Will NOT use memoization")

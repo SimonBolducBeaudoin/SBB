@@ -114,7 +114,7 @@ class logger(object):
         for i in range(self.logger_indent) :
             ss += '\t'
         self.log_txt += (s +'\n')   
-        print ss + s
+        print(ss + s)
     def open(self):
         self._experiment.tic()
         for i in range(len(self._loop_sizes)-1):
@@ -188,7 +188,7 @@ class ExperimentWarnings(Warning):
         self = cls(*arg,**kwargs)
         s = str(self)
         name = cls.__name__
-        print name + ' : \n' + s
+        print(name + ' : \n' + s)
         return self
 
 class LoadingWarning(ExperimentWarnings):
@@ -295,7 +295,7 @@ class Accretion(object):
     """
     @classmethod
     def description(cls):
-        print cls.__doc__
+        print(cls.__doc__)
     def __init__(self, exp):
         self.exp = exp
     #############
@@ -324,7 +324,7 @@ class Accretion(object):
         to_save                     = self._data
         to_save['_versions_saved']  = __SBB_version__
         numpy.savez_compressed(os.path.join(path_save,filename),**to_save)
-        print "Data saved \n \t folder : {} \n \t {}".format(path_save,filename) 
+        print("Data saved \n \t folder : {} \n \t {}".format(path_save,filename) )
     def _load_data_dict(self,data_dict):
         dict_to_attr(self,data_dict)
         self._data  = data_dict
@@ -361,7 +361,7 @@ class Analysis(Info):
     """
     @classmethod
     def description(cls):
-        print cls.__doc__
+        print(cls.__doc__)
     def __init__(self,conditions,data_dict,meta_info=None,**options):
         """
             - conditions    : example == (n_measures, nd_array_core_loop_cnds) 
@@ -424,7 +424,7 @@ class Analysis(Info):
             extension += '.ignore' if ignore else ''
             filename = prefix+'{}'.format(time_stamp) + extension
             numpy.savez_compressed(os.path.join(path_save,filename),**to_save)
-            print "Data saved \n \t folder : {} \n \t {}".format(path_save,filename)
+            print("Data saved \n \t folder : {} \n \t {}".format(path_save,filename))
         elif ((format=='npy') or (format=='save') or (format=='uncompressed') or (format=='.npy')) :
             # allows memory mapping (more efficient for huge arrays)
             extension = '.npy'
@@ -432,13 +432,13 @@ class Analysis(Info):
             for key in to_save:
                 filename = key+'_{}'.format(time_stamp) + extension
                 numpy.save(os.path.join(path_save,filename),to_save[key],allow_pickle=True,fix_imports=True)
-                print "Data saved \n \t folder : {} \n \t {}".format(path_save,filename)
+                print("Data saved \n \t folder : {} \n \t {}".format(path_save,filename))
         else : # format=='zip'
             extension = '.npz'
             extension += '.ignore' if ignore else ''
             filename = prefix+'{}'.format(time_stamp) + extension
             numpy.savez(os.path.join(path_save,filename),**to_save)
-            print "Data saved \n \t folder : {} \n \t {}".format(path_save,filename)
+            print("Data saved \n \t folder : {} \n \t {}".format(path_save,filename))
     def _load_data_dict(self,data_dict):
         dict_to_attr(self,data_dict)
         self._data  = data_dict
@@ -704,7 +704,7 @@ class Experiment(Analysis):
             Should always be implemented
         """
         if self._verbose :
-            print '_set_devices_to_close_state'
+            print('_set_devices_to_close_state')
         for dev in self._devices :
             dev.set_close_state()
     #################
@@ -732,7 +732,7 @@ class Experiment(Analysis):
     def _all_loop_close(self):
         if self._data_from_experiment :
             if self._verbose :
-                print 'Setting device to close state'
+                print('Setting device to close state')
             self._set_devices_to_close_state()
         self._log.close()
     def _measurement_loop(self):
