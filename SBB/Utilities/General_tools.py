@@ -4,6 +4,8 @@
 from    scipy.optimize import leastsq
 import  scipy.odr as odr  
 import  numpy
+from numpy.fft import rfft, rfftfreq
+from numpy import zeros, abs
 
 import scipy.constants as C
 _e      = C.e # Coulomb
@@ -11,6 +13,14 @@ _h      = C.h # Joule second
 _hbar   = C.hbar
 _kb     = C.Boltzmann # J/K (joules per kelvin)
 _c      = C.c # m/s
+
+def analyseur_de_spectre_scalaire(data,dt,l_chunk=1024):
+    f = rfftfreq(l_chunk,dt)
+    F = zeros(len(f))
+    N_chunk = len(data)//l_chunk
+    for i in range(N_chunk):
+        F += abs(rfft(data[i*l_chunk:(i+1)*l_chunk]))
+    return f,F/N_chunk
 
 def BoseEinstein(f,T):
     return 1.0/(numpy.exp(_h*f/(_kb*T))-1.0)
@@ -103,18 +113,18 @@ def SE(mu2k,muk,n):
     """
     return numpy.sqrt(numpy.abs(mu2k-muk**2)/float(n))    
 
-def polyfit_above_th(X,Y,Xth,deg=1,Y_even=None,swap=None):
+def polyfit_above_th(X,Y,Xth,deg=1,Y_even=None):
     """
-    Polynomial fit of Y(X) for X>Xth.
+    Polynomial fit of y(x) for x>xth , for all y in Y, x in X and xth in x 
     If Y_even = True ==> 
         Fit Y(X) : X<-Xth and X>Xth
     If swap = True 
         swap axes on Y before anything else
     Parameters
     ----------
-    X     : array like, shape (M) or (N,M)
-    Y     : array like, shape (N,M) or (M,N) then use swap = True
-    Xth  : float or array_like, shape or (N)
+    X     : array like, shape (M,) or (N,M)
+    Y     : array like, shape (M,) or (N,M) 
+    Xth  : float or array_like with shape (N,)
     deg   : int
         Degree of the fitting polynomial
     
@@ -126,26 +136,33 @@ def polyfit_above_th(X,Y,Xth,deg=1,Y_even=None,swap=None):
     --------
     numpy.polyfit
     """
-    if swap is not None : Y = numpy.swapaxes(Y,0,1)
-    N           = Y.shape[0]
-    M           = Y.shape[1]
+    
+    # Y.shape == (N,M)
+    N           = Y.shape[0] if len(Y.shape)>1 else 1
+    M           = Y.shape[-1]
+    # Make array
     Xth         = numpy.array([Xth]) if type(Xth) is float else numpy.array(Xth)
-    xth         = numpy.zeros((N,))
-    xth[...]    = Xth
-    x           = numpy.zeros((N,M))
+    
+    # Forcing all to compatible shape
+    xth         = numpy.zeros((N,)) 
+    xth[...]    = Xth 
+    x           = numpy.zeros((N,M)) #
     x[...]      = X
+    y           = numpy.zeros((N,M)) #
+    y[...]      = Y
+    
     if Y_even :
         X_pos       = x>=xth[:,None]
         X_neg       = x<=-xth[:,None]
         P  = numpy.zeros((2,N,deg+1))
-        for j,(xx,y,x_pos,x_neg) in enumerate(zip(x,Y,X_pos,X_neg)):
-            P[0,j]   = numpy.polyfit(xx[x_pos],y[x_pos],deg)
-            P[1,j]   = numpy.polyfit(xx[x_neg],y[x_neg],deg)
+        for j,(xx,yy,x_pos,x_neg) in enumerate(zip(x,y,X_pos,X_neg)):
+            P[0,j]   = numpy.polyfit(xx[x_pos],yy[x_pos],deg)
+            P[1,j]   = numpy.polyfit(xx[x_neg],yy[x_neg],deg)
     else :
         X_pos       = x>=xth[:,None]
         P  = numpy.zeros((N,deg+1))
-        for j,(xx,y,x_pos) in enumerate(zip(x,Y,X_pos)):
-            P[j]   = numpy.polyfit(xx[x_pos],y[x_pos],deg)
+        for j,(xx,yy,x_pos) in enumerate(zip(x,y,X_pos)):
+            P[j]   = numpy.polyfit(xx[x_pos],yy[x_pos],deg)
     return P
 
 class fit:

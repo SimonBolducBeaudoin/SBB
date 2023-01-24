@@ -9,6 +9,8 @@ from numpy import *
 import time
 import os
 
+from SBB.Histograms.histograms import Histogram_uint64_t_int16_t
+from matplotlib.pyplot import plot, xlim
 #if os.environ.has_key('QT_API') :
 try :
     # pyHegel will not load properly if Qt is not active
@@ -267,6 +269,45 @@ class Lakeshore_wrapper(Pyhegel_wrapper):
         set(self._lakeshore.pid, P = self._proportional[index] )
         set(self._lakeshore.pid, I = self._integral[index]     )
         set(self._lakeshore.pid, D = self._derivative[index]   )
+
+class Dmm_wrapper(Pyhegel_wrapper):
+    """
+    """
+    __version__ = {'Dmm_wrapper':0.1}
+    __version__.update(Pyhegel_wrapper.__version__)
+    name_addr = {  'dmm11':'GPIB0::22::INSTR', }
+    def __init__(self,visa_addr=None,nickname='dmm11',**options):
+        self._set_options(**options)
+        if self._debug :
+            self._dmm = None
+            self._V_dummy = 0.0
+        else :
+            visa_addr = visa_addr if visa_addr else Dmm_wrapper.name_addr[nickname]
+            self._dmm = instruments.agilent_multi_34410A('GPIB0::22::INSTR')
+            set(self._dmm.aperture, 1)
+            set(self._dmm.zero,True)
+    """
+        Wrapper of existing behavior
+    """
+    def _set_options(self,**options):
+        self._debug  = options.get('debug')
+    def get(self):
+        if self._debug :
+            print "get Dmm : {:0.2f}[V]".format(self._V_dummy)
+            return self._V_dummy
+        else :
+            return get(self._dmm)
+
+    def set_aperture(self,val=None):
+        if self._debug :
+            print "set Dmm aperture : {}".format(val)
+        else :
+            set(self._dmm.aperture, val)
+    def set_zero(self,booleen=True):
+        if self._debug :
+            print "set Dmm zero : {}".format(booleen)
+        else :
+            set(self._dmm.zero, booleen)
         
 class Yoko_wrapper(Pyhegel_wrapper):
     """
@@ -387,7 +428,7 @@ class Guzik_wrapper(Pyhegel_wrapper):
         Bugs :
             - See comment In quick historam
     """
-    __version__     =  {'Guzik_wrapper':0.3}
+    __version__     =  {'Guzik_wrapper':0.4}
     __version__.update(Pyhegel_wrapper.__version__)
     __dummy_config__ = {'conv_resolution':r_[1.0]}
     _gz_instance =   [] 
@@ -413,6 +454,7 @@ class Guzik_wrapper(Pyhegel_wrapper):
         self._v_data = verification_data
         self.__load_guzik__()
         self._gz = self._gz_instance[0] 
+        self._config_inputs = dict() # used to save config calls
     def __del__(self):
         self.counter[0] -= 1 
         self._gz = None 
@@ -435,6 +477,8 @@ class Guzik_wrapper(Pyhegel_wrapper):
         else :
             self._gz_instance.append(None)
     def config(self, channels=None, n_S_ch=1024, bits_16=True, gain_dB=0., offset=0., equalizer_en=True, force_slower_sampling=False, ext_ref='default', _hdr_func=None):
+        if channels is not None :
+            self._config_inputs = dict(channels=channels, n_S_ch=n_S_ch, bits_16=bits_16, gain_dB=gain_dB, offset=offset, equalizer_en=equalizer_en, force_slower_sampling=force_slower_sampling, ext_ref=ext_ref, _hdr_func=_hdr_func)
         if not self._debug : 
             return self._gz.config(channels,n_S_ch,bits_16,gain_dB,offset,equalizer_en,force_slower_sampling,ext_ref,_hdr_func)
         else :
@@ -445,17 +489,23 @@ class Guzik_wrapper(Pyhegel_wrapper):
             return self._gz._read_config()
         else :
             return None
-    def get_mv_per_bin(self,channel=1):
+    def get_config_inputs(self):
+        """
+            Return a dict of the last used inputs of self.config(...)
+        """
+        return self._config_inputs
+        
+    def get_mv_per_bin(self):
         if not self._debug : 
-            return self._gz._read_config()['conv_resolution'][channel-1]*1000
+            return r_[self._gz._read_config()['conv_resolution']]*1000
         else :
             return 1.0
-    def get_offset(self):
+    def get_center_bin(self):
         """
             Subtract this amount to get the equivalent int number
         """
         if not self._debug : 
-            return self._gz._read_config()['conv_offset']
+            return r_[self._gz._read_config()['conv_offset']]
         else :
             return 0.
     
@@ -475,25 +525,31 @@ class Guzik_wrapper(Pyhegel_wrapper):
             return self.get()[:snipsize]
         else :
             return self._dummy_data[0,:snipsize]
-    def quick_histogram_int16(self,n_threads=32):
+    def quick_histogram_int16(self,channel=None,n_threads=32):
         hist = Histogram_uint64_t_int16_t(n_threads,bit=16) # Bug : not using bit=16 does work but crashes in accumulate
         if not self._debug : 
-            data = self.get()
+            if channel ==None:
+                data = self.get()
+            elif (channel>0) and (channel<5) :
+                data = self.get()[channel-1]
+            else:
+                raise Exception(" Channel must be in 1 to 4.")
         else :
             data = self._dummy_data
         hist.accumulate(data)
         plot(arange(-2.0**15,2.0**15),hist.get())
         xlim(0,1023)
+        del hist
 
 class PSG_wrapper(Pyhegel_wrapper):
     """
         Todos :
             - Implement basic behaviour
     """
-    __version__ = {'PSG_wrapper':0.1}
+    __version__ = {'PSG_wrapper':0.2}
     __version__.update(Pyhegel_wrapper.__version__)
     name_addr = {  'PSG_E8257D':'GPIB0::19::INSTR',}
-    default_freq    = 40.0e9
+    default_freq    = 20.0e9
     default_ampl    = -135.0
     default_rf_en   = False
     
@@ -505,6 +561,12 @@ class PSG_wrapper(Pyhegel_wrapper):
             visa_addr = visa_addr if visa_addr else PSG_wrapper.name_addr[nickname]
             self._psg = instruments.agilent_rf_PSG(visa_addr=visa_addr)
             self.set_init_state()
+    def __del__(self):
+        self._set_options(**options)
+        if self._debug :
+            pass
+        else :
+            self.set_close_state()
     """
         Wrapper of existing behavior
     """
@@ -536,11 +598,14 @@ class PSG_wrapper(Pyhegel_wrapper):
         Extra behavior
     """
     def set_init_state(self):
-        self.set_freq(PSG_wrapper.default_freq)
+        # PSG is not coherent when changing freq hence I dont change it here to stay coherent when constructor and destructor are called.
+        # 
+        #self.set_freq(PSG_wrapper.default_freq) 
         self.set_ampl(PSG_wrapper.default_ampl)
         self.set_output(PSG_wrapper.default_rf_en)
     def set_close_state(self):
-        self.set_freq(PSG_wrapper.default_freq)
+        # PSG is not coherent when changing freq hence I dont change it here to stay coherent when constructor and destructor are called.
+        #self.set_freq(PSG_wrapper.default_freq)
         self.set_ampl(PSG_wrapper.default_ampl)
         self.set_output(PSG_wrapper.default_rf_en)
         
