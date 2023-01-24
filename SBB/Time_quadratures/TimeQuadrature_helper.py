@@ -16,7 +16,7 @@ import  numpy
 from SBB.Time_quadratures.time_quadratures import TimeQuad_uint64_t
 from SBB.Utilities.General_tools import * 
 
-__version__ = {'TimeQuadrature_helper': 0.6}
+__version__ = {'TimeQuadrature_helper': 0.7}
 __filters__ = {'gauss':0,'bigauss':1,'flatband':2}
 """
     Public
@@ -51,7 +51,7 @@ def gen_gauss_info(fs,dfs,snap_on=True):
     """
     fs  = numpy.array(fs)
     if fs.size == 0 : # the array is empty
-        return {'fs':numpy.array([]),'dfs':numpy.array([]),'snap_on':snap_on}
+        gauss_info = {'fs':numpy.array([]),'dfs':numpy.array([]),'snap_on':snap_on}
     else: 
         dfs = numpy.array(dfs)
         if dfs.size == 1 :  # all the same df
@@ -253,7 +253,7 @@ def _gen_labels(filter_info):
     gauss_info,bigauss_info,flatband_info = _extract_filter_info(filter_info)
     return gauss_info['labels'] + bigauss_info['labels'] + flatband_info['labels']
 
-def _gen_gauss_labels(gauss_info,label_frmt="{:0.1f}"):
+def _gen_gauss_labels(gauss_info,label_frmt="{:0.3f}"):
     fs , dfs    = _extract_gauss_info(gauss_info)
     labels = []
     for (f,df) in zip(fs,dfs) :
@@ -261,7 +261,7 @@ def _gen_gauss_labels(gauss_info,label_frmt="{:0.1f}"):
         labels.append(label)
     return labels
 
-def _gen_bigauss_labels(bigauss_info,label_frmt="{:0.1f}&{:0.1f}"):
+def _gen_bigauss_labels(bigauss_info,label_frmt="{:0.3f}&{:0.3f}"):
     fs , dfs    = _extract_bigauss_info(bigauss_info)
     labels = []
     for (f,df) in zip(fs,dfs) :
@@ -269,7 +269,7 @@ def _gen_bigauss_labels(bigauss_info,label_frmt="{:0.1f}&{:0.1f}"):
         labels.append(label)
     return labels
 
-def _gen_flatband_labels(flatband_info,label_frmt="{:0.1f}-{:0.1f}"):
+def _gen_flatband_labels(flatband_info,label_frmt="{:0.3f}-{:0.3f}"):
     fs,_ =_extract_flatband_info(flatband_info)
     labels = []
     for f in fs :
