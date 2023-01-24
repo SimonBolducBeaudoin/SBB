@@ -6,6 +6,9 @@ import numpy
 import itertools
 import os
 
+from SBB.Utilities.python_extra import mklist
+from SBB.Utilities.Data_Manager import remove_zeros_subarrays
+
 import pkg_resources  # part of setuptools
 __SBB_version__ = {'SBB':pkg_resources.require("SBB")[0].version}
 del pkg_resources
@@ -21,6 +24,96 @@ def dict_to_attr(self,dict,user_key_to_attribute_key={}):
     conv = user_key_to_attribute_key 
     for key in dict :
         setattr(self,conv[key],dict[key]) if key in conv else setattr(self,key,dict[key])
+
+def get_all_with_key(files,key,index=None,cdn_axis=None,interlaced=None):
+    """
+    Load the data from a list of files and returns a concatenated array data['key'].
+    Parameters
+    ----------
+    files : list of files to be loaded
+    key   : string for the key to be loaded in each file
+    
+    (optional arguments)
+        index : int index to be called after the key, data[key][index]
+            Ex : data['_conditions'][index] to load experimental conditions
+        
+        (the following arguments are used together)
+        cdn_axis : list of axis in the array data['key'] 
+        interlaced : list of bool indicating if the conditions is interlaced or not
+            Conditions and reference will be seperated in two dimensions
+            
+    Returns
+    --------
+    A concatenated array of all data[key]
+    
+    """
+    cdn_axis = mklist(cdn_axis)
+    interlaced = mklist(interlaced)
+    Cond = []
+    for file in files :
+        data = numpy.load(file,allow_pickle=True)
+        data = dict(data)
+        cond = data[key] if not(index) else data[key][index]
+        # Adding a dim for references for each conditions that is interlaced 
+        for c_axis,inter in zip( cdn_axis, interlaced ):
+            if inter : 
+                cond.shape = cond.shape[:c_axis] + (cond.shape[c_axis]//2,2) + cond.shape[c_axis+1:]            
+        Cond.append( cond )
+    return numpy.concatenate( [Cond], axis=0) # A concatenated array of all exp
+
+def combine_repetitions(list_npz,single_copy,remove_zeros=True):
+    """
+    This function is meant to be use to fuse together repetitions of an experiement (Same conditions/Same everything).
+    
+    Parameters
+    ----------
+    list_npz : list
+        A list of npz files (relative to pwd) where to find the data.
+        Each .npz is assumed to have been produced by SBB.experiement.
+        It has to contain a the following keys 
+            '_conditions' key that represents the experimental conditions
+            '_meta_info'  extra information about an experiment
+            '_options'    optional arugments of a experiement
+            'SBB_verion'  version number of SBB library
+    single_copy : list
+        A list of keys that are containing the same information for all experimental repetitions
+    remove_zeros : bool (default True)
+        A boolean that indicates if lines full of zeros should be removed from numpy array that are combined.
+    
+    Returns
+    --------
+    D : dict
+        A dictionnary ready for use with numpy.save/savez/savez_compress 
+    n_measures : int
+        The number of repetitions of the experimen (summed over all repetitions)
+        
+    """ 
+    single_copy += ['_conditions','_meta_info','_options','SBB_version'] # can this be moved to a default argument ?
+    
+    l_data =list()
+    n_measure = 0
+    for s in list_npz :
+        data = numpy.load(s,allow_pickle=True)
+        data = dict(data)
+        n,Vdc,Vac = data['_conditions']
+        n_measure += n
+        l_data.append(data)
+
+    D = dict()
+    for k in l_data[0].keys():
+        if k in single_copy :
+            D[k] = l_data[0][k]
+        else :
+            tmp = list()
+            for data in l_data:
+                tmp.append(data[k])
+            if l_data[0][k].dtype == object : # All non np.array data
+                D[k] = numpy.concatenate([tmp], axis=0)
+            else : # All np.array data
+                if remove_zeros :
+                    tmp = [remove_zeros_subarrays(t) for t in tmp ] # removes empty experiemental repetitions
+                D[k] = numpy.concatenate(tmp, axis=0)
+    return D , n_measure
 
 ####################
 # Pyhegel Utilities #

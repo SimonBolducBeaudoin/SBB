@@ -76,5 +76,48 @@ def set_exp_environment(python_2_7_scripts_root,exp_dir,**options):
         sys.path.append(paths['custom_libraries'])
     if ( platform.system() == 'Windows' ) and ( paths['mingw_binaries'] not in os.environ['PATH'] ) :
         os.environ['PATH'] = paths['mingw_binaries']+os.path.pathsep+os.environ['PATH']
-    return scripts,paths    
+    return scripts,paths   
+
+def clean_function_source(func):
+    """
+    Get the cleaned up source code of a function.
+
+    Parameters:
+    func (function): The function to get the source code for.
+
+    Returns:
+    str: The cleaned up source code of the function.
+    """
+    src = inspect.getsource(func)
+    src = src[src.index(':\n') + 1:] # Removes everything before the first ":\n"
+    src = re.sub(r'""".*?"""|\'\'\'.*?\'\'\'', '', src, flags=re.DOTALL) # Removes comments 
+    src = re.sub(r'#.*', '', src) # Removes comments 
+    src = re.sub(r'\n\s*\n', '\n', src) # Removes empty lines
+    src = re.sub(r' (?<!\t) +(?!\t)', ' ', src) # Removes non-essential spaces
+    return src
+
+def compare_function_sources(src1, src2):
+    """
+    Compare the cleaned up source code of two functions.
+
+    Parameters:
+    src1 (str): The cleaned up source code of the first function.
+    src2 (str): The cleaned up source code of the second function.
+    Returns:
+    list: A list of line numbers of any differences between the two source code strings. If the source code strings are the same, the list will be empty.
+    """
+    # Split the source code strings into lines
+    lines1 = src1.split('\n')
+    lines2 = src2.split('\n')
+
+    # Initialize a list to store the line numbers of any differences
+    diff_lines = []
+
+    # Compare the lines of the source code
+    for i, (line1, line2) in enumerate(zip(lines1, lines2)):
+        if line1 != line2:
+            diff_lines.append(i + 1)  # Add the line number to the list
+
+    # Return the list of line numbers
+    return diff_lines    
     

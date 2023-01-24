@@ -4,6 +4,59 @@
 import numpy
 from SBB.Pyhegel_extra.Experiment import logger,Experiment
 
+def combine_arrays(S_list,V_list):
+    """
+    To be deleted 
+    """     
+    # Check that V_list like a list of list of 1D arrays
+    if isinstance( V_list[0][0], (list, tuple, ndarray) ) :
+        pass # List of list ok
+    elif isinstance( V_list[0], (list, tuple, ndarray) ) :
+        # Single list of conditions
+        V_list = [ [v] for v in V_list ]
+    else :
+        raise Exception("V_list has to be like a list of list of 1D np.arrays")
+        
+    # Check that Vs all have the same length
+    if all( [ len(V_list[0]) != len(V) for V in V_list ] ) :
+        raise Exception("len (V_0) != len(V_n)")
+    
+    # Get the number of dimensions of the experimental conditions
+    n_dim_cdn = len(V_list[0])
+    
+    # A list of unique conditions for each experimental variables
+    V =[ sort(unique(concatenate([v[n] for v in V_list]))) for n in range(n_dim_cdn) ]
+    
+    # A list of list of lenght for each experimental variables of each experiments
+    l_list = [[len(v) for v in V_rep] for V_rep in V_list ]
+    
+    # A List of reshaped measurment with all experimental variables flatten in a single dimension
+    S_list = [ Sn.reshape( (Sn.shape[0],) + (prod(ln),) + Sn.shape[1+n_dim_cdn:] ) for Sn,ln in zip(S_list,l_list) ]
+    
+    S = []
+    # Iterate over the combined experimental conditions
+    for i, (v_idx, v) in enumerate( super_enumerate(*V) ):
+        # A list og repetitions of v 
+        S_reps = reperition_of_v(S_list,V_list,v)
+        # Concatenate into an np.array along the repetition axis
+        S.append(concatenate( S_reps, axis=0))
+    
+    S = pad_arrays( *(S), axis =0  ) # Pad only the repetition axis
+    # Concatenate the arrays in the list into a single array
+    S = concatenate(S, axis=1)
+    
+    # Shape of the unique experimental variables
+    l = tuple( len(v) for v in V )
+    # Restoring shapes
+    S.shape = (S.shape[0],) + l + S.shape[2:]
+
+    # Cleaning up/Removing index along the first dimension for which S is all 0 
+    S = remove_nan_subarrays(S)
+
+    # Return the combined arrays
+    return V, S
+
+
 class logger_acq_and_compute(logger):
     """
         A logger with default Aquisition and Computing events

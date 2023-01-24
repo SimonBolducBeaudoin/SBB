@@ -79,7 +79,7 @@ def C2_of_R(R,r_end=50.,r_len = 100000):
     f_of_r    = f_of_r/norm
     return  moment_of_f(r,f_of_r,2)
 
-def C4_over_C2_2_of_R(R,r_end=50.,r_len = 100000):
+def C4_over_C2_2_of_R(R,r_end=50.,r_len = 10000):
     """
     Invalid when R ==> 0
     """
@@ -91,15 +91,66 @@ def C4_over_C2_2_of_R(R,r_end=50.,r_len = 100000):
     r2        = moment_of_f(r,f_of_r,2)
     r4        = moment_of_f(r,f_of_r,4)
     return r4/r2**2-3.
+    
 
-def zero_C4_over_C2_2(R,y):
-    return C4_over_C2_2_of_R(R) - y
+def zero_C4_over_C2_2(R,y,r_end=50.0,r_len = 10000):
+    return C4_over_C2_2_of_R(R,r_end,r_len) - y
 
-def find_R_from_C4_over_C2_2(C4_norms,maxiter=100, xtol= 1.e-3, rtol=1.e-3):
+def find_R_from_C4_over_C2_2(C4_norms,maxiter=100, xtol= 1.e-3, rtol=1.e-3,r_end=50.0,r_len = 10000):
     R = zeros(C4_norms.shape)
-    for i,y in enumerate (C4_norms) :
-        if y <= 0:
-            R[i] = 1.0
-        else :
-            R[i] = brentq(zero_C4_over_C2_2, 0.1, 1., args=(y,) ,maxiter=maxiter, xtol=xtol, rtol=rtol,full_output=False, disp=True)
+    
+    try :
+        def factory(R,y,r_end=r_end,r_len = r_len):
+            return C4_over_C2_2_of_R(R,r_end,r_len) - y   
+        for i,y in enumerate (C4_norms) :
+            if y <= 0.01:   # for convenience
+                R[i] = 1.0
+            else :
+                R[i] = brentq(factory, 0.01, 1., args=(y,) ,maxiter=maxiter, xtol=xtol, rtol=rtol,full_output=False, disp=True)
+    except ValueError:
+        def factory(R,y,r_end=r_end,r_len = r_len*10): # Augmenting the number of points if brentq show an error for the initial args
+            return C4_over_C2_2_of_R(R,r_end,r_len) - y   
+        for i,y in enumerate (C4_norms) :
+            if y <= 0.01:   # for convenience
+                R[i] = 1.0
+            else :
+                R[i] = brentq(factory, 0.01, 1., args=(y,) ,maxiter=maxiter, xtol=xtol, rtol=rtol,full_output=False, disp=True)
     return R
+
+
+def C4_over_C2_of_R(R,r_end=50.,r_len = 10000):
+    """
+    Computes (<r**4> - 3 <r**2>) /<r**2>
+    """
+    r = linspace(0,r_end,r_len)
+    r  = r_[-1.*r[::-1],r] #symmetrized 
+    f_of_r    = rotating_gaussian(r,R=R)
+    norm      = moment_of_f(r,f_of_r,0)
+    f_of_r    = f_of_r/norm
+    r2        = moment_of_f(r,f_of_r,2)
+    r4        = moment_of_f(r,f_of_r,4)
+    return (r4-3.*r2**2)/r2
+    
+def C2_over_C0_of_R(R,r_end=50.,r_len = 10000):
+    """
+    Computes ( <r**2>) /<r**0>)
+    """
+    r = linspace(0,r_end,r_len)
+    r  = r_[-1.*r[::-1],r] #symmetrized 
+    f_of_r    = rotating_gaussian(r,R=R)
+    norm      = moment_of_f(r,f_of_r,0)
+    r2        = moment_of_f(r,f_of_r,2)
+    return r2/norm
+ 
+# def find_sigma_square(C4,C2,R,r_end=50.,r_len = 10000):
+    # tmp = zeros(R.shape)
+    # for i,RR in enumerate(R) :
+        # tmp[i] = C4_over_C2_of_R(RR,r_end=50.,r_len = 10000)
+    # return 0.25* C4 / (C2 * tmp) 
+ 
+def find_sigma_square(C2,R,r_end=50.,r_len = 10000):
+    tmp = zeros(R.shape)
+    for i,RR in enumerate(R) :
+        tmp[i] = C2_over_C0_of_R(RR,r_end=50.,r_len = 10000)
+    return 0.25* C2 / tmp 
+    
