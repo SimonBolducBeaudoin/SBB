@@ -36,6 +36,7 @@
 *.pyd
 *.pyc
 *.npz
+!*dont_ignore.npz
 *.pdf
 *.png
 *.a

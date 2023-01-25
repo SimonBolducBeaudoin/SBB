@@ -4,13 +4,20 @@
 """
     Pyhegel_wrapper should only work in a pyHegel instance
 """
-
+import numpy
 from numpy import *
 import time
 import os
 
 from SBB.Histograms.histograms import Histogram_uint64_t_int16_t
 from matplotlib.pyplot import plot, xlim
+from SBB.Time_quadratures.TimeQuadrature_helper import gen_gauss_info, gen_bigauss_info, gen_flatband_info, gen_filter_info, gen_Filters
+from SBB.Utilities.General_tools                    import build_array_of_objects
+from SBB.Utilities.numpy_extra import sub_flatten
+from SBB.Time_quadratures.time_quadratures import TimeQuad_uint64_t
+from SBB.Histograms.histograms import Histogram_uint64_t_double
+import matplotlib.pyplot as plt
+
 #if os.environ.has_key('QT_API') :
 try :
     # pyHegel will not load properly if Qt is not active
@@ -426,7 +433,7 @@ class Guzik_wrapper(Pyhegel_wrapper):
                 - Also in config() I make an instance of dummy_data but I'm not covering the case where more than one channel is declared
                 - This last problem propagates to the get function since idk what is the entended return format for the data when more than one channel is declared
         Bugs :
-            - See comment In quick historam
+            - 
     """
     __version__     =  {'Guzik_wrapper':0.4}
     __version__.update(Pyhegel_wrapper.__version__)
@@ -537,9 +544,102 @@ class Guzik_wrapper(Pyhegel_wrapper):
         else :
             data = self._dummy_data
         hist.accumulate(data)
-        plot(arange(-2.0**15,2.0**15),hist.get())
-        xlim(0,1023)
+        fig, axs = plt.subplots(1,1)
+        axs.plot(arange(-2.0**15,2.0**15),hist.get())
+        axs.set_xlim(0,1023)
         del hist
+    
+    def quick_TimeQuad_Hist(self, channels=[1], bits_16=True, R = 53.55 , dt = 0.03125 ,l_data = 2**20, kernel_conf = 0 , Filters = None , g = None , alpha = 0.5, l_fft = 1<<12, n_threads=32,nb_of_bin=2**10
+    ,max=30.0):
+        """
+        Recall that dt is in ns for TimeQuad
+        """
+        # Save gz config
+        kw_save = self.get_config_inputs()
+        kw_new = kw_save.copy()
+        # Change l_data
+        kw_new['bits_16']   = True
+        kw_new['channels']  = [1]
+        kw_new['n_S_ch']    = l_data 
+        self.config(**kw_new)
+        # Generate filters
+        if not(Filters):
+            l_kernel            = 257
+            df                  = 0.2
+            gauss_freq          = [l for l in arange(0.5,9.5,2.0)]
+            bigauss_freq        = ((3.0,9.0),)
+            flatband_freq       = ((3.0,9.0),)
+            rise                = 0.5
+            fall                = 0.5
+            gauss_info          = gen_gauss_info    ( gauss_freq    , df         , snap_on = False)
+            bigauss_info        = gen_bigauss_info  ( bigauss_freq  , df         , snap_on = False)
+            flatband_info       = gen_flatband_info ( flatband_freq , rise ,fall , snap_on = False)
+            filter_info         = gen_filter_info   (gauss_info,bigauss_info,flatband_info)
+            Labels              = filter_info['labels'] # labels for each filter
+            Filters = gen_Filters(l_kernel,dt,filter_info)
+        # get gain from savez file or
+        if not(g) :
+            g = numpy.array([ 0. +1233447.48211945j , 2014382.62296872+0.j      , 4212513.64926135+0.j  , 5626167.06773638+0.j  ,  6268274.00946245+0.j  ,  6489912.19388733+0.j  ,     6716927.61476388+0.j  , 
+                               6932006.65208599+0.j , 6951305.03747698+0.j      , 6872675.64560166+0.j  , 6834074.08728509+0.j  , 6778818.56083906+0.j   , 6677563.45329639+0.j   , 6641532.84760902+0.j  , 
+                               6670313.86675495+0.j  , 6580549.1370443 +0.      , 6360990.09857228+0.j  , 6273979.84713977+0.j  , 6417797.65539862+0.j  , 6536817.34569317+0.j  , 6457187.45064371+0.j  , 
+                               6344149.0993814 +0.j  , 6397108.85503472+0.j     , 6514431.60214083+0.j  , 6552251.59920815+0.j  , 6581106.59129658+0.j  , 6676834.85883645+0.j  , 6729372.19852922+0.j  , 
+                               6624039.42364206+0.j  , 6450543.35672593+0.j     , 6366180.52243542+0.j  , 6367568.31007204+0.j  , 6355804.52590302+0.j  , 6286201.74970847+0.j  , 6139224.82952241+0.j  , 
+                               5915331.65315409+0.j  , 5732936.81429356+0.j     , 5728442.0519769 +0.j  , 5813044.38119848+0.j  , 5746431.94932932+0.j  , 5493408.04841275+0.j  , 5300352.31780025+0.j  , 
+                               5313972.12579926+0.j  , 5379515.97946268+0.j     , 5349914.06333239+0.j  , 5274616.04311803+0.j  , 5223486.42783012+0.j  , 5152883.3707777 +0.j  , 5054271.01603503+0.j  , 
+                               5051849.55867565+0.j  , 5173370.13229235+0.j     , 5221754.1483936+0.j   , 5088329.41936734+0.j  , 4945174.33763714+0.j  , 4987082.65658295+0.j  , 
+                               5115157.25183068+0.j  ,5129846.25543486+0.j      , 5056251.08510716+0.j  , 5042020.3562642+0.j  , 5090586.28544275+0.j  , 5101522.86812322+0.j  ,
+                               5077769.92275904+0.j  , 5105348.21963821+0.j     , 5151755.20235579+0.j  , 5092854.48679232+0.j  , 4962231.64751582+0.j  ,4951309.3735698+0.j  , 
+                               5089913.35394787+0.j  , 5149530.82929639+0.j     , 4995856.85183187+0.j  , 4809689.62437178+0.j  ,4829091.38269029+0.j  , 5000498.03880304+0.j  , 
+                               5103667.5913316+0.j   , 5081447.67917133+0.j     , 5051789.42282839+0.j  ,5036214.28141782+0.j  , 4924946.22898122+0.j  , 4721354.15712033+0.j  , 
+                               4468195.81941838+0.j  , 4006212.33811382+0.j     ,3137306.64106639+0.j  , 1935172.94590784+0.j  ,  785919.008764 +0.j  ,  371034.79896915+0.j  ,  
+                               442040.02464654+0.j  , 0  +107758.8690659j       ,  296971.26820592+0.j  , 0.  +189924.89594713j,  242199.37750765+0.j  , 0.  +173075.88390189j,  
+                               187032.6248962+0.j  , 0.  +169488.79747726j      ,  161923.56484515+0.j  , 0.  +148342.17079277j,  128840.84822731+0.j  , 0.  +144686.98531115j,  
+                               121068.37345855+0.j  , 0.  +124802.81261518j     , 0.   +95448.57504386j , 0.+125440.7176288j , 0. +98061.12437081j, 0.+106600.37545204j, 0. +74956.33389072j, 
+                               0.+111036.35979154j, 0. +84563.34899973j         , 0. +92517.76653347j, 0. +62076.30723644j, 0.+100098.30414688j, 0. +76659.48342245j, 0. +81416.67489318j, 
+                               0. +54281.43259308j,0. +91690.51537071j          , 0. +72554.69837522j, 0. +72109.00366396j, 0. +49684.90798115j, 0. +85173.13917868j, 0. +70561.82001131j, 
+                               0. +64858.58083877j, 0. +48196.64044228j         , 0. +80030.36127212j, 0. +70241.25767971j, 0. +59001.74939166j, 0. +48787.7201047j , 0. +76071.60438746j, 
+                               0. +71194.41854569j, 0. +54340.0761915j          , 0. +50955.64397358j, 0. +73065.4930929j ])
+      
+            
+        # Instanciate X
+        X = TimeQuad_uint64_t(R,dt,l_data,kernel_conf,Filters,g,alpha,l_fft,n_threads)
+        
+        # Instanciate Hs
+        shape = X.ks().shape[:-1]
+        Hs    = build_array_of_objects( shape , Histogram_uint64_t_double , *(nb_of_bin,n_threads,max) ) 
+        
+        # Get data
+        if not self._debug : 
+            data = self.get()
+        else :
+            data = self._dummy_data
+        
+        X.execute( data ) # force the initialization of memory
+        quads = X.quads()
+        
+        # Accumulate in histograms 
+        quads_shape = sub_flatten ( quads, axis = -1 ) # this modifies input arr
+        for quad, H in zip(quads,Hs.flat):
+            H.accumulate(quad)
+        # Restore shapes
+        quads.shape = quads_shape
+        
+        # Plot all hist
+        fig, axs = plt.subplots(1,1)
+        for i,H_quad in enumerate(Hs):
+            for H_filters, label in zip( H_quad, Labels) :
+                if i == 0 :
+                    axs.plot( numpy.linspace(- max,max, nb_of_bin ) ,H_filters.get() ,label = label)
+                else :
+                    axs.plot( numpy.linspace(- max,max, nb_of_bin) ,H_filters.get() ,ls=':')
+        axs.legend()
+        # Restor gz
+        self.config(**kw_save)
+        
+        # Free memory
+        del quads
+        del X
+        del Hs
 
 class PSG_wrapper(Pyhegel_wrapper):
     """

@@ -4,6 +4,27 @@
 import numpy
 
 from SBB.Utilities.python_extra import mklist,super_enumerate
+
+def sub_flatten(arr,axis=-1):
+    """
+    Equivalent to 
+    arr = arr.reshape( (int(numpy.prod(arr.shape[:axis])),) + arr.shape[axis:] ) 
+    but doesn't make a copy of the array instead it modifies arr.shape.
+    
+    Warning ! 
+    ---------
+    This function will modify the arr input's shape. 
+    
+    Returns
+    ------- 
+    old_shape : tuple
+        Can be used to restore the initial shape of the array afterward.
+        It it the responsability of the user to do so.
+    """
+    
+    shape    = arr.shape
+    arr.shape = (int(numpy.prod(shape[:axis])),) + shape[axis:]
+    return shape 
     
 def pad_arrays( *S_reps, **kwargs ):
     """
