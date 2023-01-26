@@ -2,6 +2,7 @@
 #! -*- coding: utf-8 -*-
 
 import numpy
+from SBB.Utilities.numpy_extra import sub_flatten 
 
 """
 This module is intended to help with the use of SBB.Histogram.histograms
@@ -32,10 +33,10 @@ def compute_moments(Hs,x,order = 8,Cxs=None):
     if not(Cxs):
         Cxs = numpy.ones( Hs.shape[:-1] )
         
-    moments = numpy.full( Hs.shape+ (order+1,), nan ) 
+    moments = numpy.full( Hs.shape + (order+1,), numpy.nan ) 
     ms_shape = sub_flatten(moments,axis=-2) # this function modifies the input's shape
     Hs_shape = sub_flatten(Hs,axis=-1)      # this function modifies the input's shape
-    for i, (H,Cs) in enumerate( zip( Hs, Cxs.flat ) ): 
+    for i, (H,Cx) in enumerate( zip( Hs, Cxs.flat ) ): 
         bins = x*Cx
         for j, h  in enumerate( H ) : 
             # Computes standardized moments up to order 
