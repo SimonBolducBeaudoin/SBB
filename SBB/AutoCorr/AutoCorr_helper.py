@@ -2,8 +2,9 @@
 #! -*- coding: utf-8 -*-
 
 import numpy
-from SBB.Utilities.General_tools import symetrize,fourier_transform,find_nearest_A_to_a
-from SBB.Utilities import Noise_Theory_Junction 
+from SBB.Numpy_extra.numpy_extra import symetrize,find_nearest_A_to_a
+from SBB.Math_extra.Math_extra import fourier_transform
+from SBB.Phys import Tunnel_Junction 
 
 def binV2_to_A2(S2,R_acq,mv_per_bin):
     """

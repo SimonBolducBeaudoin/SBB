@@ -6,8 +6,8 @@ import numpy
 import itertools
 import os
 
-from SBB.Utilities.python_extra import mklist
-from SBB.Utilities.Data_Manager import remove_zeros_subarrays
+from SBB.Python_extra.python_extra import mklist
+from SBB.Data_Manager.Data_Manager import remove_zeros_subarrays
 
 import pkg_resources  # part of setuptools
 __SBB_version__ = {'SBB':pkg_resources.require("SBB")[0].version}

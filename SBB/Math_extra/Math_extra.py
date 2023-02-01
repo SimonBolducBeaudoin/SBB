@@ -1,11 +1,78 @@
 #!/bin/env/python
 #! -*- coding: utf-8 -*-
 
+
+
+import  numpy
+
+def fourier_transform(F,dt):
+    """
+    This gives and approximation of F(f) or fourier transform of F(t) if you prefer
+    and is not directly the DFT of F(t)    
+    """
+    return dt*numpy.fft.rfft(F)
+def ifourier_transform(F,dt,n):
+    """
+    See Also
+    -------
+        fourier_transform
+    """
+    irfft = numpy.fft.irfft
+    shift = numpy.fft.fftshift
+    return (1.0/dt)*shift(irfft(F,n=n))
+
+#########################
+# Central limit theorem #
+#########################
+
+def SE(mu2k,muk,n):
+    """ 
+        Voir notes Virally Central limit theorem
+        Computation of the standard error for the moment of order K
+        mu2k : is the moment of order 2 k
+        muk  : is the moment of order k
+        If these moments are not centered then the definition is good for none centered moment
+        Idem for centered moment
+    """
+    return numpy.sqrt(numpy.abs(mu2k-muk**2)/float(n))  
+
+#####################
+# Moments cumulants #
+#####################
+
+def moment(hx,hs,exp,n_total,no_clip=True):
+    tmp = ((hx**exp)*hs)
+    tmp = tmp[...,1:-1] if no_clip else tmp
+    return (tmp.sum(axis=-1))/n_total
+   
+def centered_moment(hx,hs,exp,n_total,no_clip=True):
+    mu = moment(hx,hs,1,n_total,no_clip)
+    tmp = (((hx[None,None,:]-mu[...,None])**exp)*hs)
+    tmp = tmp[...,1:-1] if no_clip else tmp
+    return (tmp.sum(axis=-1))/n_total 
+
+########################
+# Numerical derivation #
+########################
+
 """
 see: https://web.media.mit.edu/~crtaylor/calculator.html
 """
 
-import  numpy
+def compute_differential(X):
+    """
+        Returns y2-y1 
+        in an array of shape (2,shape_of_X_with_a_-1_on_the_last_axis) 
+        with [0,...] corresponding to the y2
+        and  [1,...] corresponding to the y1
+        The user can do y2-y1 afterward to get the differiential
+    """
+    shape           = X.shape
+    shape           = (2,) + shape[:-1] + ( shape[-1]-1, )
+    X_diff          = numpy.zeros(shape)
+    X_diff[0,...]   = X[...,1:]
+    X_diff[1,...]   = X[...,:-1]
+    return X_diff
 
 def central_derivative_3points(dx,y):
     """

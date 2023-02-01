@@ -2,7 +2,7 @@
 #! -*- coding: utf-8 -*-
 
 import numpy
-from SBB.Utilities.numpy_extra import sub_flatten 
+from SBB.Numpy_extra.numpy_extra import sub_flatten 
 
 """
 This module is intended to help with the use of SBB.Histogram.histograms

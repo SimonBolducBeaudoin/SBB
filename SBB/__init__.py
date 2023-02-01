@@ -1,9 +1,8 @@
 #!/bin/env/python
 #! -*- coding: utf-8 -*-
 
-import SBB.AutoCorr         as AutoCorr
-import SBB.Histograms       as Histograms
-import SBB.Time_quadratures as Time_quadratures
-import SBB.Utilities        as Utilities
-import SBB.Pyhegel_extra    as Pyhegel_extra
-import SBB.Math             as Math
+"""
+    from SBB import * will make __all__ the following names available
+"""
+
+__all__ = ['AutoCorr','Time_quadratures','Pyhegel_extra','Pyhegel_extra','Math_extra','Data_Manager','Numpy_extra']

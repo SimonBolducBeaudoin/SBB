@@ -12,8 +12,7 @@ import os
 from SBB.Histograms.histograms import Histogram_uint64_t_int16_t
 from matplotlib.pyplot import plot, xlim
 from SBB.Time_quadratures.TimeQuadrature_helper import gen_gauss_info, gen_bigauss_info, gen_flatband_info, gen_filter_info, gen_Filters
-from SBB.Utilities.General_tools                    import build_array_of_objects
-from SBB.Utilities.numpy_extra import sub_flatten
+from SBB.Numpy_extra.numpy_extra import sub_flatten, build_array_of_objects
 from SBB.Time_quadratures.time_quadratures import TimeQuad_uint64_t
 from SBB.Histograms.histograms import Histogram_uint64_t_double
 import matplotlib.pyplot as plt
