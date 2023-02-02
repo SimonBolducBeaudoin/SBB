@@ -5,7 +5,7 @@ from SBB.Pyhegel_extra.Experiment import Info, Lagging_computation, Analysis
 from SBB.Pyhegel_extra.Deprecated import logger_acq_and_compute
 from SBB.Pyhegel_extra.Pyhegel_wrappers import Yoko_wrapper,Guzik_wrapper
 from SBB.Pyhegel_extra.Deprecated import Conditions_logic,Three_points_polarisation
-from SBB.Utilities.General_tools import find_nearest_A_to_a
+from SBB.Numpy_extra.numpy_extra import find_nearest_A_to_a
 from SBB.Time_quadratures.time_quadratures import TimeQuad_uint64_t
 
 import numpy

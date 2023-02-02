@@ -6,8 +6,8 @@ import numpy
 import itertools
 import os
 
-from SBB.Utilities.python_extra import mklist
-from SBB.Utilities.Data_Manager import remove_zeros_subarrays
+from SBB.Python_extra.python_extra import mklist
+from SBB.Data_Manager.Data_Manager import remove_zeros_subarrays
 
 import pkg_resources  # part of setuptools
 __SBB_version__ = {'SBB':pkg_resources.require("SBB")[0].version}
@@ -935,14 +935,10 @@ class Lagging_computation(Experiment):
             index_it , condition_it = self._core_loop_iterator()
             self._repetition_loop_start(n,condition_it)
             core_it     = iter(zip(index_it,condition_it))
-            while True :
-                try :
-                    index_tuple, condition_tuple = core_it.next()
-                    self._loop_core(index_tuple,condition_tuple)
-                except StopIteration :
-                    self._last_loop_core_iteration()
-                    break
-            self._repetition_loop_end(n)
+            for (index_tuple, condition_tuple) in core_it :
+                self._loop_core(index_tuple,condition_tuple,index_it,condition_it,n)                                       
+            self._last_loop_core_iteration(n)        
+            self._repetition_loop_end(n)     # This feals like a repetition of self._last_loop_core_iteration is it usefull ?
         self._all_loop_close()
 
 class Cross_Patern_Lagging_computation(Lagging_computation):

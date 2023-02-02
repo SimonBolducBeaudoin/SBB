@@ -2,7 +2,7 @@
 #! -*- coding: utf-8 -*-
 
 import numpy
-from SBB.Utilities.General_tools import *
+#from SBB.Utilities.General_tools import *
 
 from scipy import constants as const
 _e      = const.e           # Coulomb
