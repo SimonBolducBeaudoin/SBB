@@ -24,7 +24,7 @@ def plot_interval(ax,x,Y,std=True,n_sigma=3,min_max=True,label=None,linestyles=N
     line, same output as ax.plot
     """
     Y_m = Y.mean(axis=0)
-    line, = ax.plot(x, Y_m ,label=label,marker=marker,ls=linestyles,**kwargs)
+    line, = ax.plot(x, Y_m ,label=label,marker=marker,linestyles=linestyles,**kwargs)
     if std :
         Y_std = Y.std(axis=0)
         ax.fill_between(x, Y_m + n_sigma*Y_std, Y_m - n_sigma*Y_std, facecolor = line.get_color(),alpha=alpha[1],**kwargs)
