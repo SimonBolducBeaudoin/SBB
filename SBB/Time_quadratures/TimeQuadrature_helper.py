@@ -14,7 +14,7 @@ Bugs :
 import  numpy
 
 from SBB.Time_quadratures.time_quadratures import TimeQuad_uint64_t
-#from SBB.Utilities.General_tools import * 
+from SBB.Numpy_extra.numpy_extra import find_nearest_A_to_a
 
 __version__ = {'TimeQuadrature_helper': 0.7}
 __filters__ = {'gauss':0,'bigauss':1,'flatband':2}
