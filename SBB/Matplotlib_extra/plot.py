@@ -1,7 +1,7 @@
 #!/bin/env/python
 #! -*- coding: utf-8 -*-
 
-def plot_interval(ax,x,Y,std=True,n_sigma=3,min_max=True,label=None,linestyles=None,marker=None,alpha=[None,0.75,0.5], **kwargs):
+def plot_interval(ax,x,Y,std=True,n_sigma=3,min_max=True,label=None,linestyle=None,marker=None,alpha=[None,0.75,0.5], **kwargs):
     """
     Almost the same as plot but plota Y.mean(axis=0) and (optionnaly) some visual metrics on deviation.
     
@@ -24,7 +24,7 @@ def plot_interval(ax,x,Y,std=True,n_sigma=3,min_max=True,label=None,linestyles=N
     line, same output as ax.plot
     """
     Y_m = Y.mean(axis=0)
-    line, = ax.plot(x, Y_m ,label=label,marker=marker,linestyles=linestyles,**kwargs)
+    line, = ax.plot(x, Y_m ,label=label,marker=marker,linestyle=linestyle,**kwargs)
     if std :
         Y_std = Y.std(axis=0)
         ax.fill_between(x, Y_m + n_sigma*Y_std, Y_m - n_sigma*Y_std, facecolor = line.get_color(),alpha=alpha[1],**kwargs)

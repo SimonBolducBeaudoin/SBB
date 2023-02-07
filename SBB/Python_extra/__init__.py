@@ -2,5 +2,5 @@
 #! -*- coding: utf-8 -*-
 
 """
-    A module that adds on top of numpy
+    A module that adds on top of python
 """
