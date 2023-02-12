@@ -98,6 +98,20 @@ def compute_SII_sym_and_antisym(SII,axis=-1,interlacing=False):
     
     return S2_sym.swapaxes(axis,-1),S2_anti.swapaxes(axis,-1)
     
+def extract_S2_from_accor(acorr):
+    """
+        Converst an array of acorr object
+        to an array of S2
+    """
+    shape    = acorr.shape
+    shape   += (acorr.flat[0].res.size,)
+    S2      = numpy.full(shape,numpy.nan)
+    S2.shape = (int(numpy.prod(shape[:-1])),shape[-1]) # same as flatten() but not the last dimension
+    for i,a in enumerate(acorr.flat) :
+        S2[i,...] = a.res
+    S2.shape = shape # reshape the array 
+    return S2
+    
     
     
     
