@@ -4,20 +4,21 @@
 """
     Pyhegel_wrapper should only work in a pyHegel instance
 """
-import numpy
-from numpy import *
-import time
-import os
 
-from SBB.Histograms.histograms import Histogram_uint64_t_int16_t
-from matplotlib.pyplot import plot, xlim
-from SBB.Time_quadratures.TimeQuadrature_helper import gen_gauss_info, gen_bigauss_info, gen_flatband_info, gen_filter_info, gen_Filters
-from SBB.Numpy_extra.numpy_extra import sub_flatten, build_array_of_objects
-from SBB.Time_quadratures.time_quadratures import TimeQuad_uint64_t
-from SBB.Histograms.histograms import Histogram_uint64_t_double
-import matplotlib.pyplot as plt
+# Pucblic 
+__all__ = ["PyhegelWrapperErrors","CalibrationTableError","Pyhegel_wrapper","Dummy","Lakeshore_wrapper","Dmm_wrapper","Yoko_wrapper","Guzik_wrapper","PSG_wrapper"]
 
-#if os.environ.has_key('QT_API') :
+
+#Private
+import numpy as _np , time as _time
+import matplotlib.pyplot as _plt
+
+from SBB.Histograms.histograms import Histogram_uint64_t_int16_t as Hist_int16_t , Histogram_uint64_t_double as _Hist_double
+from SBB.Time_quadratures.TimeQuadrature_helper import gen_gauss_info as _gen_gauss_info , gen_bigauss_info as _gen_bigauss_inf , gen_flatband_info as _gen_flatband_info, gen_filter_info as _gen_filter_info, gen_Filters as _gen_Filters
+from SBB.Numpy_extra.numpy_extra import sub_flatten as _sub_flatten, build_array_of_objects as _build_array_of_objects
+from SBB.Time_quadratures.time_quadratures import TimeQuad_uint64_t as _TimeQuad_uint64_t
+
+
 try :
     # pyHegel will not load properly if Qt is not active
     from pyHegel import instruments
@@ -242,17 +243,17 @@ class Lakeshore_wrapper(Pyhegel_wrapper):
         t_tol       = self._temperature_tolerance[self._get_table_index(T_target)]
         time_tol    = self._time_tolerance[self._get_table_index(T_target)]
         T           = self.get_temperature()
-        delta_T     = numpy.abs(T - T_target)
+        delta_T     = _np.abs(T - T_target)
         keep_going  = True
         converged   = False
         while keep_going :
-            t_0 = time.time()
+            t_0 = _time.time()
             t_1 = t_0
             while delta_T<=t_tol :
                 wait(5)
                 T       = self.get_temperature() 
-                delta_T = numpy.abs(T - T_target)
-                t_1 = time.time()
+                delta_T = _np.abs(T - T_target)
+                t_1 = _time.time()
                 if not delta_T<=t_tol :
                     break 
                 elif (t_1-t_0)>=time_tol :
@@ -373,7 +374,7 @@ class Yoko_wrapper(Pyhegel_wrapper):
         self.set_output(False) 
     def set_and_wait(self,V,Waittime = 0.4):
         self.set(V)
-        time.sleep(Waittime)  # Waiting until voltage is stable
+        _time.sleep(Waittime)  # Waiting until voltage is stable
         
 class Guzik_wrapper(Pyhegel_wrapper):
     """
@@ -436,7 +437,7 @@ class Guzik_wrapper(Pyhegel_wrapper):
     """
     __version__     =  {'Guzik_wrapper':0.4}
     __version__.update(Pyhegel_wrapper.__version__)
-    __dummy_config__ = {'conv_resolution':r_[1.0]}
+    __dummy_config__ = {'conv_resolution':_np.r_[1.0]}
     _gz_instance =   [] 
     counter     =   [0]     
     def __init__(self,debug=False,verification_data=None ):
@@ -488,7 +489,7 @@ class Guzik_wrapper(Pyhegel_wrapper):
         if not self._debug : 
             return self._gz.config(channels,n_S_ch,bits_16,gain_dB,offset,equalizer_en,force_slower_sampling,ext_ref,_hdr_func)
         else :
-            self._dummy_data = zeros((1,n_S_ch),dtype='int16') # this doesn't cover all the corner cases
+            self._dummy_data = _np.zeros((1,n_S_ch),dtype='int16') # this doesn't cover all the corner cases
             return Guzik_wrapper.__dummy_config__
     def read_config(self):
         if not self._debug : 
@@ -503,7 +504,7 @@ class Guzik_wrapper(Pyhegel_wrapper):
         
     def get_mv_per_bin(self):
         if not self._debug : 
-            return r_[self._gz._read_config()['conv_resolution']]*1000
+            return _np.r_[self._gz._read_config()['conv_resolution']]*1000
         else :
             return 1.0
     def get_center_bin(self):
@@ -511,7 +512,7 @@ class Guzik_wrapper(Pyhegel_wrapper):
             Subtract this amount to get the equivalent int number
         """
         if not self._debug : 
-            return r_[self._gz._read_config()['conv_offset']]
+            return _np.r_[self._gz._read_config()['conv_offset']]
         else :
             return 0.
     
@@ -532,7 +533,7 @@ class Guzik_wrapper(Pyhegel_wrapper):
         else :
             return self._dummy_data[0,:snipsize]
     def quick_histogram_int16(self,channel=None,n_threads=32):
-        hist = Histogram_uint64_t_int16_t(n_threads,bit=16) # Bug : not using bit=16 does work but crashes in accumulate
+        hist = _Hist_int16_t(n_threads,bit=16) # Bug : not using bit=16 does work but crashes in accumulate
         if not self._debug : 
             if channel ==None:
                 data = self.get()
@@ -543,7 +544,7 @@ class Guzik_wrapper(Pyhegel_wrapper):
         else :
             data = self._dummy_data
         hist.accumulate(data)
-        fig, axs = plt.subplots(1,1)
+        fig, axs = _plt.subplots(1,1)
         axs.plot(arange(-2.0**15,2.0**15),hist.get())
         axs.set_xlim(0,1023)
         del hist
@@ -578,7 +579,7 @@ class Guzik_wrapper(Pyhegel_wrapper):
             Filters = gen_Filters(l_kernel,dt,filter_info)
         # get gain from savez file or
         if not(g) :
-            g = numpy.array([ 0. +1233447.48211945j , 2014382.62296872+0.j      , 4212513.64926135+0.j  , 5626167.06773638+0.j  ,  6268274.00946245+0.j  ,  6489912.19388733+0.j  ,     6716927.61476388+0.j  , 
+            g = _np.array([ 0. +1233447.48211945j , 2014382.62296872+0.j      , 4212513.64926135+0.j  , 5626167.06773638+0.j  ,  6268274.00946245+0.j  ,  6489912.19388733+0.j  ,     6716927.61476388+0.j  , 
                                6932006.65208599+0.j , 6951305.03747698+0.j      , 6872675.64560166+0.j  , 6834074.08728509+0.j  , 6778818.56083906+0.j   , 6677563.45329639+0.j   , 6641532.84760902+0.j  , 
                                6670313.86675495+0.j  , 6580549.1370443 +0.      , 6360990.09857228+0.j  , 6273979.84713977+0.j  , 6417797.65539862+0.j  , 6536817.34569317+0.j  , 6457187.45064371+0.j  , 
                                6344149.0993814 +0.j  , 6397108.85503472+0.j     , 6514431.60214083+0.j  , 6552251.59920815+0.j  , 6581106.59129658+0.j  , 6676834.85883645+0.j  , 6729372.19852922+0.j  , 
@@ -605,7 +606,7 @@ class Guzik_wrapper(Pyhegel_wrapper):
         
         # Instanciate Hs
         shape = X.ks().shape[:-1]
-        Hs    = build_array_of_objects( shape , Histogram_uint64_t_double , *(nb_of_bin,n_threads,max) ) 
+        Hs    = build_array_of_objects( shape , _Hist_double , *(nb_of_bin,n_threads,max) ) 
         
         # Get data
         if not self._debug : 
@@ -624,13 +625,13 @@ class Guzik_wrapper(Pyhegel_wrapper):
         quads.shape = quads_shape
         
         # Plot all hist
-        fig, axs = plt.subplots(1,1)
+        fig, axs = _plt.subplots(1,1)
         for i,H_quad in enumerate(Hs):
             for H_filters, label in zip( H_quad, Labels) :
                 if i == 0 :
-                    axs.plot( numpy.linspace(- max,max, nb_of_bin ) ,H_filters.get() ,label = label)
+                    axs.plot( _np.linspace(- max,max, nb_of_bin ) ,H_filters.get() ,label = label)
                 else :
-                    axs.plot( numpy.linspace(- max,max, nb_of_bin) ,H_filters.get() ,ls=':')
+                    axs.plot( _np.linspace(- max,max, nb_of_bin) ,H_filters.get() ,ls=':')
         axs.legend()
         # Restor gz
         self.config(**kw_save)
@@ -707,4 +708,5 @@ class PSG_wrapper(Pyhegel_wrapper):
         #self.set_freq(PSG_wrapper.default_freq)
         self.set_ampl(PSG_wrapper.default_ampl)
         self.set_output(PSG_wrapper.default_rf_en)
+        
         
