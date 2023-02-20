@@ -2,5 +2,7 @@
 #! -*- coding: utf-8 -*-
 
 """
-    A module that makes things go faster.
+    A module that extends on numpy
 """
+
+__all__ = ["numpy_extra"]
