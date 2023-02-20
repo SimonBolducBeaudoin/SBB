@@ -7,7 +7,10 @@ This saves results in a dictionnary in ram and re-use the result if the same cal
 I could add a similar behevior for heavy function but saving to disk in hte form of a np array perhaps ?
 """
 
-try: #Python 2
+import sys as _sys
+__all__ = ["MemoizeMutable"]
+
+if _sys.version_info[0] ==2 : # python 2
     import cPickle   
     class MemoizeMutable:
         def __init__(self, fn, verbose=False):
@@ -19,9 +22,8 @@ try: #Python 2
             if not self.memo.has_key(str): 
                 self.memo[str] = self.fn(*args, **kwds)      
             return self.memo[str]   
-except ModuleNotFoundError: #Python 3
+elif _sys.version_info[0] ==3 : # python 3
     import pickle
-    
     class MemoizeMutable:
         def __init__(self, fn, verbose=False):
             self.fn = fn
@@ -32,6 +34,5 @@ except ModuleNotFoundError: #Python 3
             if not str in self.memo: 
                 self.memo[str] = self.fn(*args, **kwds)
             return self.memo[str] 
-except:
-    MemoizeMutable = lambda x: x
-    raise Exception("Could not load MemoizeMutable")
+else :
+    raise Exception("Python version not compatible")

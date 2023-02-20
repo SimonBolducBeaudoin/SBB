@@ -12,32 +12,10 @@ def binV2_to_A2(S2,R_acq,mv_per_bin):
     """
     return S2*(mv_per_bin*1.0e-3)**2/(R_acq**2)
     
-def window_after_2ns(S2):
-        """
-            Damping everything more than 2 ns
-            At a sampling rate of 0.03125 it means everything after the 64th point
-            
-            This will need to be rewritten if used with another aquisition card...
-        """ 
-        def damp(x,epsilon,x_0):
-            return numpy.exp((-1)*epsilon*(x-x_0))
-        def compute_epsilon(red,after_lenght):
-            return -numpy.log(1.0/red)/(after_lenght)
-        red = 1000
-        L_0 = 65
-        epsilon = compute_epsilon(red,after_lenght=L_0)
-        shape = S2.shape
-        len = shape[-1]
-        out = numpy.zeros(shape)
-        out = S2
-        for index in range(L_0,len):
-            out[...,index] = S2[...,index]*damp(index,epsilon,L_0-1)
-        return out
-
-def SII_dc_of_t_to_spectrum(S2,dt):
-    S2_windowed       = window_after_2ns(S2)
-    S2_sym            = symetrize (S2_windowed)
-    return numpy.abs(fourier_transform(S2_sym,dt))
+# def SII_dc_of_t_to_spectrum(S2,dt):
+    # S2_windowed       = window_after_2ns(S2)
+    # S2_sym            = symetrize (S2_windowed)
+    # return numpy.abs(fourier_transform(S2_sym,dt))
     
 def compute_Ith(f,f_max,Te,eps=0.01,R_jct=50.0):
     """
@@ -97,6 +75,20 @@ def compute_SII_sym_and_antisym(SII,axis=-1,interlacing=False):
         S2_anti = (SII[...,slice_pos] - SII[...,slice_neg][...,::-1] )/2.0
     
     return S2_sym.swapaxes(axis,-1),S2_anti.swapaxes(axis,-1)
+    
+def extract_S2_from_accor(acorr):
+    """
+        Converst an array of acorr object
+        to an array of S2
+    """
+    shape    = acorr.shape
+    shape   += (acorr.flat[0].res.size,)
+    S2      = numpy.full(shape,numpy.nan)
+    S2.shape = (int(numpy.prod(shape[:-1])),shape[-1]) # same as flatten() but not the last dimension
+    for i,a in enumerate(acorr.flat) :
+        S2[i,...] = a.res
+    S2.shape = shape # reshape the array 
+    return S2
     
     
     

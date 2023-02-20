@@ -75,7 +75,7 @@ def remove_nan_subarrays(arr):
         Then remove_nan_subarrays(arr) will return arr with line 20 removed.
     """
     # Get the indices of all subarrays that do not contain Nans
-    non_nan_indices = numpy.argwhere(~isnan(arr))
+    non_nan_indices = numpy.argwhere(~numpy.isnan(arr))
     non_nan_indices = numpy.unique(non_nan_indices[:, 0])
 
     # Return the subarrays at the non-Nan indices

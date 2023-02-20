@@ -9,6 +9,28 @@ _e      = const.e           # Coulomb
 _h      = const.h           # Joule second
 _kb     = const.Boltzmann   # J/K (joules per kelvin)
 
+def window_after_2ns(S2):
+    """
+        Damping everything more than 2 ns
+        At a sampling rate of 0.03125 it means everything after the 64th point
+        
+        This will need to be rewritten if used with another aquisition card...
+    """ 
+    def damp(x,epsilon,x_0):
+        return numpy.exp((-1)*epsilon*(x-x_0))
+    def compute_epsilon(red,after_lenght):
+        return -numpy.log(1.0/red)/(after_lenght)
+    red = 1000
+    L_0 = 65
+    epsilon = compute_epsilon(red,after_lenght=L_0)
+    shape = S2.shape
+    len = shape[-1]
+    out = numpy.zeros(shape)
+    out = S2
+    for index in range(L_0,len):
+        out[...,index] = S2[...,index]*damp(index,epsilon,L_0-1)
+    return out
+
 class Tunnel_junction(object):
     """
        This class embeds the logic associated with the tunnel junctionhttps://www.youtube.com/feed/subscriptions
