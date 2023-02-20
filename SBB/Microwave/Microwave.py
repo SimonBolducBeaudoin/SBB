@@ -8,6 +8,9 @@ def gamma_to_Z(gamma,Z0=50.0):
     """
     return Z0*(gamma+1.0)/(1.0-gamma)
     
+def Z_to_gamma(Z,Z0=50.0):
+    return (Z-Z0)/(Z+Z0)
+    
 def dB_to_V2_over_V1(dB,R2,R1=50.0):
     """
     V2/V1  = 10**(dBm/20) sqrt(R2/R1)
