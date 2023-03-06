@@ -30,7 +30,13 @@ def find_nearest_A_to_a(a,A):
 
 def symetrize(X):
     """
-        Symetrize along the last axis
+    Symetrize data along the last axis assuming the first point must not be duplicated.
+    
+    Input
+    -----
+        S2 : np.array with shape = (...,N)
+    Output
+        np.array with shape = (...,2*N-1)  
     """
     return numpy.concatenate((X[...,-1:0:-1],X),axis=-1)
 

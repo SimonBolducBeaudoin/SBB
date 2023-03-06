@@ -1,56 +1,45 @@
 #!/bin/env/python
 #! -*- coding: utf-8 -*-
 
-def polyfit_above_th(X,Y,Xth,deg=1,Y_even=None):
+import numpy as _np
+
+def polyfit_above_th(X,Y,Xth,deg=1):
     """
-    Polynomial fit of y(x) for x>xth , for all y in Y, x in X and xth in x 
-    If Y_even = True ==> 
-        Fit Y(X) : X<-Xth and X>Xth
-    If swap = True 
-        swap axes on Y before anything else
-    Parameters
-    ----------
-    X     : array like, shape (M,) or (N,M)
-    Y     : array like, shape (M,) or (N,M) 
-    Xth  : float or array_like with shape (N,)
+    Polynomial fit of Y(X) for X>Xth.
+
+    Inputs
+    ------
+    X     : array like, shape (M) or (N,M)
+    Y     : array like, shape (N,M) or (M,N) then use swap = True
+    Xth  : float or array_like, shape or (N)
     deg   : int
         Degree of the fitting polynomial
     
     Returns
     -------
-    P     : ndarray, shape(N,deg+1) or (2,N,deg+1) [Y_even==True]
+    P     : ndarray, shape(N,deg+1)
     
     See Also
     --------
-    numpy.polyfit
+    _np.polyfit
     """
-    
-    # Y.shape == (N,M)
-    N           = Y.shape[0] if len(Y.shape)>1 else 1
-    M           = Y.shape[-1]
-    # Make array
-    Xth         = numpy.array([Xth]) if type(Xth) is float else numpy.array(Xth)
-    
-    # Forcing all to compatible shape
-    xth         = numpy.zeros((N,)) 
-    xth[...]    = Xth 
-    x           = numpy.zeros((N,M)) #
+    N           = Y.shape[0]
+    M           = Y.shape[1]
+    Xth         = _np.array([Xth]) if type(Xth) is float else _np.array(Xth)
+    xth         = _np.zeros((N,))
+    xth[...]    = Xth
+    x           = _np.zeros((N,M))
     x[...]      = X
-    y           = numpy.zeros((N,M)) #
-    y[...]      = Y
-    
-    if Y_even :
-        X_pos       = x>=xth[:,None]
-        X_neg       = x<=-xth[:,None]
-        P  = numpy.zeros((2,N,deg+1))
-        for j,(xx,yy,x_pos,x_neg) in enumerate(zip(x,y,X_pos,X_neg)):
-            P[0,j]   = numpy.polyfit(xx[x_pos],yy[x_pos],deg)
-            P[1,j]   = numpy.polyfit(xx[x_neg],yy[x_neg],deg)
-    else :
-        X_pos       = x>=xth[:,None]
-        P  = numpy.zeros((N,deg+1))
-        for j,(xx,yy,x_pos) in enumerate(zip(x,y,X_pos)):
-            P[j]   = numpy.polyfit(xx[x_pos],yy[x_pos],deg)
+    X_pos       = x>=xth[:,None]
+    P  = _np.zeros((N,deg+1))
+    for j,(xx,y,x_pos) in enumerate(zip(x,Y,X_pos)):
+        # Removing nans 
+        not_nan = ~(_np.isnan(y)) 
+        all_nan = all(not_nan==False)
+        if all_nan :
+            P[j] = nan
+        else :
+            P[j]   = _np.polyfit(xx[x_pos & not_nan],y[x_pos & not_nan],deg)
     return P
 
 class fit:
@@ -129,14 +118,14 @@ class fit:
     '''
     __version__ = {'fit':0.3}
     def __init__(self,x,y,p0,f,yerr=None,weights=None,verbose=True,fullo=1):
-        self.x      = numpy.array(x)
-        self.y      = numpy.array(y).flatten()
+        self.x      = _np.array(x)
+        self.y      = _np.array(y).flatten()
         yerr        = yerr      if yerr     is not None else [1.]*self.x.shape[-1]
-        yerr        = numpy.array(yerr).flatten()
+        yerr        = _np.array(yerr).flatten()
         weights     = weights   if weights  is not None else [1.]*self.x.shape[-1]
-        weights     = numpy.array(weights).flatten()
+        weights     = _np.array(weights).flatten()
         self.yerr   = yerr/weights        
-        self.para   = numpy.r_[p0].flatten() # Paramètres initiaux
+        self.para   = _np.r_[p0].flatten() # Paramètres initiaux
         self.f       = f        # Fonction pour la régression
         self.fullo   = fullo     # 'Full output' de leastsq
         self.verbose = verbose    # Imprime des résultats importants à l'écran
@@ -161,7 +150,7 @@ class fit:
     def _residuals(self,p):
         return (self.y-self.f(self.x,p))/self.yerr
     def _computevalues(self):
-        self.sdcv = numpy.sqrt(numpy.diag(self.cv))
+        self.sdcv = _np.sqrt(_np.diag(self.cv))
         # Matrice de corrélation
         self.corrM = self.cv/self.sdcv/self.sdcv[:,None]
         self.chi2 = sum(((self.y-self.f(self.x,self.para))/self.yerr)**2.)
@@ -192,7 +181,7 @@ class fit:
             # Nombre d'itérations :
             self.it = self.lsq[2]['nfev'] 
             self._computevalues()
-            self.err = self.sdcv*numpy.sqrt(self.chi2r)
+            self.err = self.sdcv*_np.sqrt(self.chi2r)
 #            self.donnee = []
 #            for i in range(len(self.para)):
 #                self.donnee.append(d.donnee(self.para[i],self.err[i]))

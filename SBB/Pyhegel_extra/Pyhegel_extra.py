@@ -1,6 +1,9 @@
 #!/bin/env/python
 #! -*- coding: utf-8 -*-
 
+__all__ = ["analyseur_de_spectre_scalaire","parralel_get"]
+from SBB.Brrrr.Threading_extra import ThreadWithReturnValue as _Thread_rv
+
 def analyseur_de_spectre_scalaire(data,dt,l_chunk=1024):
     """
     Converts raw signal to a scalar spectrum of lenght l_chunk
@@ -13,3 +16,4 @@ def analyseur_de_spectre_scalaire(data,dt,l_chunk=1024):
     for i in range(N_chunk):
         F += abs(rfft(data[i*l_chunk:(i+1)*l_chunk]))
     return f,F/N_chunk
+    
