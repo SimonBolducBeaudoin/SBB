@@ -1,11 +1,12 @@
 #!/bin/env/python
 #! -*- coding: utf-8 -*-
 
-from pylab import *
-from scipy.special import jv as besselJ
-import scipy.constants as C
+from scipy import tanh as _tanh , arctanh as _arctanh
+import numpy as _np
+from scipy.special import jv as _besselJ
+import scipy.constants as _C
 
-from SBB.Brrrr.Memoize import MemoizeMutable
+from SBB.Brrrr.Memoize import MemoizeMutable as _MemMut
 
 ###############
 # Description #
@@ -29,12 +30,12 @@ Default units are A² for autocovariance and A²/Hz for spectral densities.
 
 #################################################################################
 def coth(x):
-    return 1./tanh(x)
+    return 1./_tanh(x)
 
 # Optimizing this function helps a lot in the end.
 def xcothx(x):
-    x = r_[x]
-    ret = empty(x.shape)
+    x = _np.r_[x]
+    ret = _np.empty(x.shape)
     mask = x==0
     xmask = x[~mask]
     ret[mask]=1
@@ -42,7 +43,7 @@ def xcothx(x):
     return ret
 
 # Equivalent and clearer but slower implementation of xcothx
-@vectorize
+@_np.vectorize
 def _xcothx(x):
     if x==0:
         return 1
@@ -96,15 +97,15 @@ def V_th(f,Te=None,epsilon=0.01):
     """
     if Te :
         cst = arctanh(1.0/(1.0+epsilon)) # coth(cst) = 1.01
-        #return max(array([  abs( cst*2.0*C.k *Te - C.h*f ) ,  abs( cst*2.0*C.k*Te + C.h*f ) ]),axis=0)/C.e
-        return matplotlib.numpy.max(array([  abs( cst*2.0*C.k *Te - C.h*f ) ,  abs( cst*2.0*C.k*Te + C.h*f ) ]),axis=0)/C.e
+        #return max(array([  abs( cst*2.0*_C.k *Te - _C.h*f ) ,  abs( cst*2.0*_C.k*Te + _C.h*f ) ]),axis=0)/_C.e
+        return matplotlib.numpy.max(array([  abs( cst*2.0*_C.k *Te - _C.h*f ) ,  abs( cst*2.0*_C.k*Te + _C.h*f ) ]),axis=0)/_C.e
     else :
-        return C.h*f/C.e
+        return _C.h*f/_C.e
 
 #####################################################################
 
 def compute_nu(V):
-    return C.e*V/C.hbar
+    return _C.e*V/_C.hbar
 
 def Seq_of_t(tau,Te,R):
     """
@@ -113,7 +114,7 @@ def Seq_of_t(tau,Te,R):
     Time domain auto-correlation of a tunnel junction at thermal equilibrium
     
     Latex :
-        S_{eq} = - \frac{\pi (k T)^2}{R \hbar} \sinh^{-2} \bigg( \frac{\pi k T}{\hbar} \tau \bigg)
+        S_{eq} = - \frac{\pi (k T)^2}{R \hbar} \_np.sinh^{-2} \bigg( \frac{\pi k T}{\hbar} \tau \bigg)
         
     See Also
     --------
@@ -129,9 +130,9 @@ def Seq_of_t(tau,Te,R):
     Seq : float     [A^2]       
     """
     if Te==0:
-        return -1./tau**2*C.hbar/(pi*R)
+        return -1./tau**2*_C.hbar/(pi*R)
     else:
-        return -pi*(C.k*Te)**2/(R*C.hbar)*1./(sinh(pi*C.k*Te*tau/C.hbar))**2
+        return -pi*(_C.k*Te)**2/(R*_C.hbar)*1./(_np.sinh(pi*_C.k*Te*tau/_C.hbar))**2
         
 def _Sdc_of_t(tau,nu,Te,R):
     """
@@ -147,8 +148,8 @@ def _Sdc_of_t(tau,nu,Te,R):
     -------
     Seq : float     [A^2]
     """
-    return Seq_of_t(tau,Te,R)*cos(nu*tau)
-Sdc_of_t = MemoizeMutable(vectorize(_Sdc_of_t))
+    return Seq_of_t(tau,Te,R)*_np.cos(nu*tau)
+Sdc_of_t = _MemMut(_np.vectorize(_Sdc_of_t))
 
 def _DSdc_of_t(tau,nu,Te,R):
     """
@@ -165,10 +166,10 @@ def _DSdc_of_t(tau,nu,Te,R):
     -------
     Seq : float     [A^2]
     """
-    return -2*Seq_of_t(tau,Te,R)*sin(nu*tau/2.)**2
+    return -2*Seq_of_t(tau,Te,R)*_np.sin(nu*tau/2.)**2
     # Equivalent form for testing
     #return _tSdc(tau,nu,Te,R)-_tSdc(tau,0,Te,R)
-DSdc_of_t = MemoizeMutable(vectorize(_DSdc_of_t))
+DSdc_of_t = _MemMut(_np.vectorize(_DSdc_of_t))
  
  
 def _SPH_of_t(tau,nu,Te,R):
@@ -186,11 +187,11 @@ def _SPH_of_t(tau,nu,Te,R):
     Seq : float     [A^2]
     """
     if tau==0:
-        D = pi*(C.k*Te)**2/(3*C.hbar*R)
+        D = pi*(_C.k*Te)**2/(3*_C.hbar*R)
     else:
         D = Seq_of_t(tau,Te,R)-Seq_of_t(tau,0,R)
-    return D*cos(nu*tau)
-SPH_of_t = MemoizeMutable(vectorize(_SPH_of_t))
+    return D*_np.cos(nu*tau)
+SPH_of_t = _MemMut(_np.vectorize(_SPH_of_t))
 
 
 ####################
@@ -220,17 +221,17 @@ def _Seq_of_f(omega,Te,R):
     Seq : float     [A^2/Hz]       
     """
     if Te==0:
-        return abs(C.hbar*omega)/R
+        return abs(_C.hbar*omega)/R
     else:
-        return 2*C.k*Te/R * xcothx(C.hbar*omega/(2*C.k*Te))
-Seq_of_f = MemoizeMutable(vectorize(_Seq_of_f))
+        return 2*_C.k*Te/R * xcothx(_C.hbar*omega/(2*_C.k*Te))
+Seq_of_f = _MemMut(_np.vectorize(_Seq_of_f))
 
 def _Sdc_of_f(omega,nu,Te,R):
     return (_Seq_of_f(nu-omega,Te,R)+_Seq_of_f(nu+omega,Te,R))/2.
-Sdc_of_f = MemoizeMutable(vectorize(_Sdc_of_f))
+Sdc_of_f = _MemMut(_np.vectorize(_Sdc_of_f))
 
 def bessel_weights(n,z):
-    return besselJ(Ns,z)**2.
+    return _besselJ(Ns,z)**2.
     
 def _Spa_of_f(omega,nu,nuac,Omega,Te,R,nBessel=21):
     if not nuac*Omega:
@@ -241,10 +242,10 @@ def _Spa_of_f(omega,nu,nuac,Omega,Te,R,nBessel=21):
     freqs = omega+Ns*Omega
 
     Sdcs = _Sdc_of_f(freqs,nu,Te,R)
-    bessels = besselJ(Ns,z)**2.
+    bessels = _besselJ(Ns,z)**2.
 
-    return dot(bessels, Sdcs)
-Spa_of_f = MemoizeMutable(vectorize(_Spa_of_f))
+    return _np.dot(bessels, Sdcs)
+Spa_of_f = _MemMut(_np.vectorize(_Spa_of_f))
 
 def _Sphi_of_f(phi,omega,nu,nuac,Omega,Te,R,nBessel=21):
     if phi is None or not nuac*Omega:
@@ -258,15 +259,15 @@ def _Sphi_of_f(phi,omega,nu,nuac,Omega,Te,R,nBessel=21):
     Sds_m = _Seq_of_f(freqs_m,Te,R)*exp(+1j*Ns*phi)
     Sds_p = _Seq_of_f(freqs_p,Te,R)*exp(-1j*Ns*phi)
 
-    bessels = besselJ(Ns,z)
+    bessels = _besselJ(Ns,z)
 
-    return 0.5*(exp(-1j*z*sin(phi))*dot(bessels,Sds_m) + exp(+1j*z*sin(phi))*dot(bessels,Sds_p))
-Sphi_of_f = MemoizeMutable(vectorize(_Sphi_of_f))
+    return 0.5*(exp(-1j*z*_np.sin(phi))*_np.dot(bessels,Sds_m) + exp(+1j*z*_np.sin(phi))*_np.dot(bessels,Sds_p))
+Sphi_of_f = _MemMut(_np.vectorize(_Sphi_of_f))
 
 def _Spa_adiabatique(omega, phi, nu, nuac, Te, R) :
     dphi  = phi[1] - phi[0]
     return (1./(2*pi)) * Sdc_of_f( omega, nu + nuac , Te , R ).sum(axis=0) * dphi
-_Spa_adiabatique = MemoizeMutable(vectorize(_Spa_adiabatique))
+_Spa_adiabatique = _MemMut(_np.vectorize(_Spa_adiabatique))
 
 def _betap(p,f,nu,Te,nuac,Omega,R,nBessel=21):
     omega = 2.0*pi*f
@@ -283,10 +284,10 @@ def _betap(p,f,nu,Te,nuac,Omega,R,nBessel=21):
     Sds_m = _Seq(freqs_m,Te,R)*(-1.)**p
     Sds_p = _Seq(freqs_p,Te,R)
 
-    bessels = besselJ(Ns,z)*besselJ(Ns+p,z)
+    bessels = _besselJ(Ns,z)*_besselJ(Ns+p,z)
 
-    return dot(bessels, (Sds_m+Sds_p)/2.)
-betap = MemoizeMutable(vectorize(_betap))
+    return _np.dot(bessels, (Sds_m+Sds_p)/2.)
+betap = _MemMut(_np.vectorize(_betap))
 
 def Xp(p,omega,nu,Te,nuac,Omega,R,nBessel=21):
     return betap(p,omega,nu,Te,nuac,Omega,R,nBessel=nBessel)+betap(-p,omega,nu,Te,nuac,Omega,R,nBessel=nBessel)
@@ -295,4 +296,4 @@ def Yp(p,omega,nu,Te,nuac,Omega,R,nBessel=21):
     return betap(p,omega,nu,Te,nuac,Omega,R,nBessel=nBessel)-betap(-p,omega,nu,Te,nuac,Omega,R,nBessel=nBessel)
 
 def Sqz(p,omega,nu,Te,nuac,Omega, R,nBessel=21):
-    return sign(p)*betap(abs(p),omega,nu,Te,nuac,Omega,R,nBessel=21)+Spa(omega,nu,Te,nuac,Omega,R,nBessel=21)
+    return _np.sign(p)*betap(abs(p),omega,nu,Te,nuac,Omega,R,nBessel=21)+Spa(omega,nu,Te,nuac,Omega,R,nBessel=21)
