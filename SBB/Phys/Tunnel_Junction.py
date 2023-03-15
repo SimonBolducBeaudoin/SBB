@@ -96,9 +96,8 @@ def V_th(f,Te=None,epsilon=0.01):
             for which SII_eq = asymtotic value + epsilon
     """
     if Te :
-        cst = arctanh(1.0/(1.0+epsilon)) # coth(cst) = 1.01
-        #return max(array([  abs( cst*2.0*_C.k *Te - _C.h*f ) ,  abs( cst*2.0*_C.k*Te + _C.h*f ) ]),axis=0)/_C.e
-        return matplotlib.numpy.max(array([  abs( cst*2.0*_C.k *Te - _C.h*f ) ,  abs( cst*2.0*_C.k*Te + _C.h*f ) ]),axis=0)/_C.e
+        cst = _arctanh(1.0/(1.0+epsilon)) # coth(cst) = 1.01
+        return _np.max(_np.array([  _np.abs( cst*2.0*_C.k *Te - _C.h*f ) ,  _np.abs( cst*2.0*_C.k*Te + _C.h*f ) ]),axis=0)/_C.e
     else :
         return _C.h*f/_C.e
 
