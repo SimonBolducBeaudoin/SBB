@@ -7,7 +7,7 @@ import itertools
 import os
 
 from SBB.Python_extra.python_extra import mklist
-from SBB.Data_Manager.Data_Manager import remove_zeros_subarrays
+from SBB.Data_Manager.Data_Manager import remove_zeros_subarrays, remove_nan_subarrays
 
 import pkg_resources  # part of setuptools
 __SBB_version__ = {'SBB':pkg_resources.require("SBB")[0].version}
@@ -61,7 +61,7 @@ def get_all_with_key(files,key,index=None,cdn_axis=None,interlaced=None):
         Cond.append( cond )
     return numpy.concatenate( [Cond], axis=0) # A concatenated array of all exp
 
-def combine_repetitions(list_npz,single_copy,remove_zeros=True):
+def combine_repetitions(list_npz,single_copy,remove_zeros=True,remove_nans=True,np_load_kw={'allow_pickle':True,'fix_imports':True,'encoding':'latin1'}):
     """
     This function is meant to be use to fuse together repetitions of an experiement (Same conditions/Same everything).
     
@@ -79,6 +79,8 @@ def combine_repetitions(list_npz,single_copy,remove_zeros=True):
         A list of keys that are containing the same information for all experimental repetitions
     remove_zeros : bool (default True)
         A boolean that indicates if lines full of zeros should be removed from numpy array that are combined.
+    remove_nans : bool (default True)
+        A boolean that indicates if lines full of nans should be removed from numpy array that are combined.
     
     Returns
     --------
@@ -93,7 +95,7 @@ def combine_repetitions(list_npz,single_copy,remove_zeros=True):
     l_data =list()
     n_measure = 0
     for s in list_npz :
-        data = numpy.load(s,allow_pickle=True)
+        data = numpy.load(s,**np_load_kw)
         data = dict(data)
         n,Vdc,Vac = data['_conditions']
         n_measure += n
@@ -111,7 +113,9 @@ def combine_repetitions(list_npz,single_copy,remove_zeros=True):
                 D[k] = numpy.concatenate([tmp], axis=0)
             else : # All np.array data
                 if remove_zeros :
-                    tmp = [remove_zeros_subarrays(t) for t in tmp ] # removes empty experiemental repetitions
+                    tmp = [remove_zeros_subarrays(t) for t in tmp ] # removes empty/zeros experiemental repetitions
+                if remove_nans :
+                    tmp = [remove_nan_subarrays(t) for t in tmp ]   # removes empty/nans experiemental repetitions
                 D[k] = numpy.concatenate(tmp, axis=0)
     return D , n_measure
 
