@@ -3,43 +3,50 @@
 
 import numpy as _np
 
-def polyfit_above_th(X,Y,Xth,deg=1):
+def polyfit_above_th(x,Y,Xth,deg=1):
     """
     Polynomial fit of Y(X) for X>Xth.
 
     Inputs
     ------
-    X     : array like, shape (M) or (N,M)
-    Y     : array like, shape (N,M) or (M,N) then use swap = True
-    Xth  : float or array_like, shape or (N)
+    X     : array like, shape (M) 
+    Y     : array like, shape (...,M) 
+    Xth  : float or array_like with shape (...)
     deg   : int
         Degree of the fitting polynomial
     
     Returns
     -------
-    P     : ndarray, shape(N,deg+1)
+    P     : ndarray, shape(...,deg+1)
     
     See Also
     --------
     _np.polyfit
     """
-    N           = Y.shape[0]
-    M           = Y.shape[1]
-    Xth         = _np.array([Xth]) if type(Xth) is float else _np.array(Xth)
-    xth         = _np.zeros((N,))
+    Y_shape = Y.shape
+    if Y.ndim == 1 :
+     Y = Y[None,:]
+    xth         = _np.full( Y.shape[:-1],_np.nan )
     xth[...]    = Xth
-    x           = _np.zeros((N,M))
-    x[...]      = X
-    X_pos       = x>=xth[:,None]
-    P  = _np.zeros((N,deg+1))
-    for j,(xx,y,x_pos) in enumerate(zip(x,Y,X_pos)):
-        # Removing nans 
+    Xth         = xth
+    
+    P_shape = Y.shape[:-1]+(deg+1,)
+    P  = _np.full( P_shape, _np.nan )
+    
+    def sub_flat(arr,axis=-1):
+        return arr.reshape( (int(_np.prod(arr.shape[:axis])),) + arr.shape[axis:] )  
+    P = sub_flat(P)
+    
+    for j,(y,xth) in enumerate(zip(sub_flat(Y),Xth.flat)):
+        x_pos   = x>=xth
         not_nan = ~(_np.isnan(y)) 
         all_nan = all(not_nan==False)
         if all_nan :
             P[j] = nan
         else :
-            P[j]   = _np.polyfit(xx[x_pos & not_nan],y[x_pos & not_nan],deg)
+            P[j]   = _np.polyfit(x[x_pos & not_nan],y[x_pos & not_nan],deg)
+    Y.shape = Y_shape
+    P.shape = P_shape
     return P
 
 class fit:
