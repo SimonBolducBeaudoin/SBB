@@ -104,6 +104,36 @@ def repetitions_of_v(S_list,V_list,v):
             S_reps += [ numpy.nan ,]# place holder
     return S_reps
     
+def sort_A_acording_to_B(A_list,B_list):
+    """
+    Sorts A_list according to the sorted values of B_list.
+    Assumes A_list and B_list have identical shapes.
+
+    Steps:
+    1. Get the number of dimensions of the conditions in B_list.
+    2. Sort the list of conditions in B_list in ascending order and keep track of the index of the first 
+       occurrence of each unique value for each dimension.
+    3. Get the sorted unique values of B for each dimension.
+    4. Concatenate the values in A_list for each dimension and sort the resulting array based on how 
+       B was sorted in step 2. Use the sorted indices from step 2 to sort A_list based on the sorted B.
+    5. Return the sorted A and B.
+
+    Arguments:
+    A_list -- list of arrays to be sorted
+    B_list -- list of arrays to be used as the sort keys
+
+    Returns:
+    A -- sorted A_list
+    B -- sorted B_list
+    """
+    n_dim_cdn = len(B_list[0])
+    # Sorts B (idx = 0) and keeps index of the first occurences (idx = 1)
+    S = [ numpy.unique(numpy.concatenate([v[n] for v in B_list]),return_index=True) for n in range(n_dim_cdn) ]
+    # get the sorted B for each dimension
+    B   = [ s[0] for s in S ] 
+    A   = [ (numpy.concatenate([v[n] for v in A_list])[s[1]] ) for n,s in zip(range(n_dim_cdn),S) ]
+    return A,B
+    
 def combine_arrays(S_list,V_list):
     """
     Combines experimental data (S_list) in order not to loose repetitions of experimental conditions.
