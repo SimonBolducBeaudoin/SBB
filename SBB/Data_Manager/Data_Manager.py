@@ -3,10 +3,10 @@
 
 """Regroups function used to combine and clean up data produced by experiments"""
 
-import numpy
+import numpy as _np
 
-from SBB.Python_extra.python_extra import super_enumerate
-from SBB.Numpy_extra.numpy_extra import argwhere_tuple
+from SBB.Python_extra.python_extra import super_enumerate as _super_enumerate
+from SBB.Numpy_extra.numpy_extra import argwhere_tuple as argwhere_tuple , find_where_A_equal_B as _find_AB
 
 def get_untreated_files(folder,pattern= 'exp_??????-??????.npz',ReDo=False,AddIgnore=True,LookForLonelyIgnore=True): 
     """ 
@@ -60,8 +60,8 @@ def remove_zeros_subarrays(arr):
         Then remove_zeros_subarrays(arr) will return arr with line 20 removed.
     """
     # Get the indices of all subarrays that do not contain zeros
-    non_zero_indices = numpy.argwhere(arr)
-    non_zero_indices = numpy.unique(non_zero_indices[:, 0])
+    non_zero_indices = _np.argwhere(arr)
+    non_zero_indices = _np.unique(non_zero_indices[:, 0])
 
     # Return the subarrays at the non-Nan indices
     return arr[non_zero_indices]
@@ -75,8 +75,8 @@ def remove_nan_subarrays(arr):
         Then remove_nan_subarrays(arr) will return arr with line 20 removed.
     """
     # Get the indices of all subarrays that do not contain Nans
-    non_nan_indices = numpy.argwhere(~numpy.isnan(arr))
-    non_nan_indices = numpy.unique(non_nan_indices[:, 0])
+    non_nan_indices = _np.argwhere(~_np.isnan(arr))
+    non_nan_indices = _np.unique(non_nan_indices[:, 0])
 
     # Return the subarrays at the non-Nan indices
     return arr[non_nan_indices]
@@ -95,13 +95,13 @@ def repetitions_of_v(S_list,V_list,v):
     # A liste of where( vi == v) for each Vi
     for S,V in zip(S_list,V_list) :
         V_shape = [len(vv) for vv in V]
-        w = argwhere_tuple(V,v)
+        w = _argwhere_tuple(V,v)
         if w : # At least one match found
             indx = w[0] # Take only the first match's coordinate
-            flat_indx = numpy.ravel_multi_index(indx, V_shape) # convert to flat repr
+            flat_indx = _np.ravel_multi_index(indx, V_shape) # convert to flat repr
             S_reps += [ S[:, flat_indx:flat_indx+1, ...] ,]
         else :
-            S_reps += [ numpy.nan ,]# place holder
+            S_reps += [ _np.nan ,]# place holder
     return S_reps
     
 def sort_A_acording_to_B(A_list,B_list):
@@ -128,10 +128,10 @@ def sort_A_acording_to_B(A_list,B_list):
     """
     n_dim_cdn = len(B_list[0])
     # Sorts B (idx = 0) and keeps index of the first occurences (idx = 1)
-    S = [ numpy.unique(numpy.concatenate([v[n] for v in B_list]),return_index=True) for n in range(n_dim_cdn) ]
+    S = [ _np.unique(_np.concatenate([v[n] for v in B_list]),return_index=True) for n in range(n_dim_cdn) ]
     # get the sorted B for each dimension
     B   = [ s[0] for s in S ] 
-    A   = [ (numpy.concatenate([v[n] for v in A_list])[s[1]] ) for n,s in zip(range(n_dim_cdn),S) ]
+    A   = [ (_np.concatenate([v[n] for v in A_list])[s[1]] ) for n,s in zip(range(n_dim_cdn),S) ]
     return A,B
     
 def combine_arrays(S_list,V_list):
@@ -164,9 +164,9 @@ def combine_arrays(S_list,V_list):
     The behaviour is not guarantteed if this is not respected.    
     """     
     # Check that V_list like a list of list of 1D arrays
-    if isinstance( V_list[0][0], (list, tuple, numpy.ndarray) ) :
+    if isinstance( V_list[0][0], (list, tuple, _np.ndarray) ) :
         pass # List of list ok
-    elif isinstance( V_list[0], (list, tuple, numpy.ndarray) ) :
+    elif isinstance( V_list[0], (list, tuple, _np.ndarray) ) :
         # Single list of conditions
         V_list = [ [v] for v in V_list ]
     else :
@@ -176,11 +176,19 @@ def combine_arrays(S_list,V_list):
     if all( [ len(V_list[0]) != len(V) for V in V_list ] ) :
         raise Exception("len (V_0) != len(V_n)")
     
+    # List of the number of repetitions for each Sn
+    n_reps = [ len(Sn) for Sn in S_list ]
+    
     # Get the number of dimensions of the experimental conditions
     n_dim_cdn = len(V_list[0])
     
     # A list of unique conditions for each experimental variables
-    V =[ numpy.unique(numpy.concatenate([v[n] for v in V_list])) for n in range(n_dim_cdn) ]
+    V =[ _np.unique(_np.concatenate([v[n] for v in V_list])) for n in range(n_dim_cdn) ]
+    
+    # For each experiment repetitions we can find the corresponding index in the final cdn array for each cdn axis
+    # Index lists
+    Idx_list = [[ _find_AB(v_cdn,v_unique)for v_cdn,v_unique in zip(V_rep,V)] for V_rep in V_list]
+    
     # Shape of the unique combined experimental variables
     l = tuple( len(v) for v in V )
     
@@ -188,26 +196,22 @@ def combine_arrays(S_list,V_list):
     l_list = [[len(v) for v in V_rep] for V_rep in V_list ]
     
     # A List of reshaped measurment with all experimental variables flatten in a single dimension
-    S_list = [ Sn.reshape( (Sn.shape[0],) + (numpy.prod(ln),) + Sn.shape[1+n_dim_cdn:] ) for Sn,ln in zip(S_list,l_list) ]
-
-    # List of the number of repetitions
-    n_reps = [ len(Sn) for Sn in S_list ]
+    S_list = [ Sn.reshape( (Sn.shape[0],) + (_np.prod(ln),) + Sn.shape[1+n_dim_cdn:] ) for Sn,ln in zip(S_list,l_list) ]
+    
     
     # The output array with the right dimension full of nans
-    S_shape = (sum(n_reps), numpy.prod(l), ) + S_list[0].shape[2:]
-    S = numpy.full(S_shape, numpy.nan, dtype=S_list[0].dtype)
-    
-    # Iterate over the combined experimental conditions
-    for i, (v_idx, v) in enumerate( super_enumerate(*V) ):
-        # A list og repetitions of v 
-        S_reps = repetitions_of_v(S_list,V_list,v)
-        # Copy repetitions into the final combined array
-        n = 0
-        for n_rep, s_rep in zip ( n_reps , S_reps ) :
-            S[n:n+n_rep,i:i+1,...] = s_rep
-            n += n_rep
+    S_shape = (sum(n_reps), _np.prod(l), ) + S_list[0].shape[2:] # (n_reps, a,...,z            , ...                )
+    S = _np.full(S_shape, _np.nan, dtype=S_list[0].dtype)        # (n_reps, ... conditions ... , ... other axis ... )
             
-    # Restoring shapes
+    n = 0
+    for n_rep,s,idx_list in zip( n_reps,S_list,Idx_list) : # over inputs 
+        for i, (from_idx, goto_idx) in enumerate( _super_enumerate(*idx_list) ):
+            # Copy repetitions into the final combined array  
+            j = _np.ravel_multi_index(goto_idx,l) 
+            S[n:n+n_rep,j:j+1,...] = s[:,i,...]
+        n += n_rep
+                
+        # Restoring shapes
     S.shape = (S.shape[0],) + l + S.shape[2:]
 
     # Return the combined arrays
@@ -226,8 +230,8 @@ def nan_collapse(S,axis=0):
     """
     C   = S.copy()
     C   = C.swapaxes(0,axis)
-    Out = numpy.full(C.shape,numpy.nan,dtype=C.dtype)
-    for i,t in enumerate(numpy.isnan(C)):
+    Out = _np.full(C.shape,_np.nan,dtype=C.dtype)
+    for i,t in enumerate(_np.isnan(C)):
         for j,tt in enumerate(t):
             if all(tt==False):
                 break
