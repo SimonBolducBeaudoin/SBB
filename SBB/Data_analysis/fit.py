@@ -2,6 +2,7 @@
 #! -*- coding: utf-8 -*-
 
 import numpy as _np
+from scipy.optimize import leastsq as _leastsq
 
 def polyfit_above_th(x,Y,Xth,deg=1):
     """
@@ -175,7 +176,7 @@ class fit:
         """
             Computes the least squarre 
         """
-        self.lsq = leastsq(self._residuals,self.para,full_output=self.fullo)
+        self.lsq = _leastsq(self._residuals,self.para,full_output=self.fullo)
         if self.lsq[1] is None:
             if self.verbose: print('\n --- FIT DID NOT CONVERGE ---\n')
             self.err = None
