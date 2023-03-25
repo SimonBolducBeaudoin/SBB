@@ -56,14 +56,11 @@ def ACorrUpTo(k, data, phi=False, fft=None, fftchunk='auto', k_fft=32, k_fft_fac
     classname = "ACorrUpTo{fft}_{dtype}".format(dtype=dtype, fft="FFT" if fft else "Phi" if phi else "")
     
     if fft:
-        #retClass = getattr(acorrs_wrapper, classname)(k, fftchunk)
-        retClass = getattr(SBB.AutoCorr.acorrs_wrapper, classname)(k, fftchunk)
+        retClass = getattr(acorrs_wrapper, classname)(k, fftchunk)
     elif phi:
-        # retClass = getattr(acorrs_wrapper, classname)(k, phi)
-        retClass = getattr(SBB.AutoCorr.acorrs_wrapper, classname)(k, phi)
+        retClass = getattr(acorrs_wrapper, classname)(k, phi)
     else:
-        # retClass = getattr(acorrs_wrapper, classname)(k)
-        retClass = getattr(SBB.AutoCorr.acorrs_wrapper, classname)(k)
+        retClass = getattr(acorrs_wrapper, classname)(k)
     
     if type(data) is ndarray:
         retClass(data)
