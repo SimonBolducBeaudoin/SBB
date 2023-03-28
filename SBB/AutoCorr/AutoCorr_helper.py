@@ -12,10 +12,10 @@ def binV2_to_A2(S2,R_acq,mv_per_bin):
     """
     return S2*(mv_per_bin*1.0e-3)**2/(R_acq**2)
     
-# def SII_dc_of_t_to_spectrum(S2,dt):
-    # S2_windowed       = window_after_2ns(S2)
-    # S2_sym            = symetrize (S2_windowed)
-    # return numpy.abs(fourier_transform(S2_sym,dt))
+def SII_dc_of_t_to_spectrum(S2,dt):
+    S2_windowed       = window_after_2ns(S2)
+    S2_sym            = symetrize (S2_windowed)
+    return numpy.abs(fourier_transform(S2_sym,dt))
     
 def compute_Ith(f,f_max,Te,eps=0.01,R_jct=50.0):
     """
