@@ -290,7 +290,7 @@ class Dmm_wrapper(Pyhegel_wrapper):
             self._V_dummy = 0.0
         else :
             visa_addr = visa_addr if visa_addr else Dmm_wrapper.name_addr[nickname]
-            self._dmm = instruments.agilent_multi_34410A('GPIB0::22::INSTR')
+            self._dmm = instruments.agilent_multi_34410A(visa_addr)
             set(self._dmm.aperture, 1)
             set(self._dmm.zero,True)
     """
