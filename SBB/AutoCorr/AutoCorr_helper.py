@@ -6,16 +6,18 @@ from SBB.Numpy_extra.numpy_extra import symetrize,find_nearest_A_to_a
 from SBB.Math_extra.Math_extra import fourier_transform
 from SBB.Phys import Tunnel_Junction 
 
+from SBB.AutoCorr.Deprecated import window_after_2ns
+
 def binV2_to_A2(S2,R_acq,mv_per_bin):
     """
     Used to convert SII(t)[bin_V**2] to SII(t)[A**2]
     """
     return S2*(mv_per_bin*1.0e-3)**2/(R_acq**2)
     
-# def SII_dc_of_t_to_spectrum(S2,dt):
-    # S2_windowed       = window_after_2ns(S2)
-    # S2_sym            = symetrize (S2_windowed)
-    # return numpy.abs(fourier_transform(S2_sym,dt))
+def SII_dc_of_t_to_spectrum(S2,dt):
+    S2_windowed       = window_after_2ns(S2)
+    S2_sym            = symetrize (S2_windowed)
+    return numpy.abs(fourier_transform(S2_sym,dt))
     
 def compute_Ith(f,f_max,Te,eps=0.01,R_jct=50.0):
     """

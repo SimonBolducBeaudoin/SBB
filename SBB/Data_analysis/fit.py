@@ -42,7 +42,7 @@ def polyfit_above_th(x,Y,Xth,deg=1):
         not_nan = ~(_np.isnan(y)) 
         all_nan = all(not_nan==False)
         if all_nan :
-            P[j] = nan
+            P[j] = _np.nan
         else :
             P[j]   = _np.polyfit(x[x_pos & not_nan],y[x_pos & not_nan],deg)
     Y.shape = Y_shape

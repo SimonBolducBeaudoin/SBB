@@ -22,7 +22,7 @@ from SBB.Time_quadratures.time_quadratures import TimeQuad_uint64_t as _TimeQuad
 try :
     # pyHegel will not load properly if Qt is not active
     from pyHegel import instruments
-    from pyHegel.commands import set,get
+    from pyHegel.commands import set,get, wait
 except ImportError :
     pass
     
@@ -102,14 +102,14 @@ class Lakeshore_wrapper(Pyhegel_wrapper):
     __version__.update(Pyhegel_wrapper.__version__)
     # These tables could be fine tuned
     # And are calibrated on  dilu 3
-    _temperature_range       =   [ 0.00700005 , 0.015   , 0.020     , 0.050     , 0.100    , 0.200     , 0.400  , 0.700 ] # The upperbound of the interval
-    _temperature_tolerance   =   [ 0.0      , 0.0005    , 0.00025   , 0.0005    , 0.00025  , 0.001     , 0.005  , 0.010 ] # The upperbound of temperature error after _stabilization_loop
-    _time_tolerance          =   [ 120      , 600*3     , 222*3     , 105*3     , 250*3    , 420*3     , 600*3  , 600*3 ] # The amount of time the temperature error as to be below the temperature_tolerance to say the stabvilization is acheived
-    _heater_range            =   [ 0.0      , 0.000316  , 0.000316  , 0.001     , 0.00316  , 0.01      , 0.01   , 0.01  ] # see instruments.lakeshore_370.heater_range for all possible values
-    _proportional            =   [ 25       , 25        , 25        , 25        , 12.5     , 6.25      , 6.25   , 6.25  ]
-    _integral                =   [ 120      , 120       , 120       , 120       , 120      , 120       , 120    , 120   ]
-    _derivative              =   [ 120        , 0       , 0         , 0         , 0        , 0         , 0      , 0     ]
-    _observed_time_cst       =   [ 1600     , 600       , 220       , 105       , 250      , 420       , 600    , 600   ] # [s] very approximate
+    _temperature_range       =   [ 0.00700005 , 0.015   , 0.020     , 0.050     , 0.100    , 0.200     , 0.400  , 0.700  , 1.2  ] # The upperbound of the interval
+    _temperature_tolerance   =   [ 0.0      , 0.0005    , 0.00025   , 0.0005    , 0.00025  , 0.001     , 0.005  , 0.010  , 0.020] # The upperbound of temperature error after _stabilization_loop
+    _time_tolerance          =   [ 120      , 600*3     , 222*3     , 105*3     , 250*3    , 420*3     , 600*3  , 600*3  , 600*3] # The amount of time the temperature error as to be below the temperature_tolerance to say the stabvilization is acheived
+    _heater_range            =   [ 0.0      , 0.000316  , 0.000316  , 0.001     , 0.00316  , 0.01      , 0.01   , 0.01   , 0.01 ] # see instruments.lakeshore_370.heater_range for all possible values
+    _proportional            =   [ 25       , 25        , 25        , 25        , 12.5     , 6.25      , 6.25   , 6.25   , 6.25 ]
+    _integral                =   [ 120      , 120       , 120       , 120       , 120      , 120       , 120    , 120    , 120  ]
+    _derivative              =   [ 120        , 0       , 0         , 0         , 0        , 0         , 0      , 0      , 0    ]
+    _observed_time_cst       =   [ 1600     , 600       , 220       , 105       , 250      , 420       , 600    , 600    , None ] # [s] very approximate
     _base_flow               =   0.50                                                                                     # mmol/s Base flow on this fridge for this calibration table
     def __init__(self, visa_addr ='ASRL1',**options):
         self._set_options(**options)
@@ -290,7 +290,7 @@ class Dmm_wrapper(Pyhegel_wrapper):
             self._V_dummy = 0.0
         else :
             visa_addr = visa_addr if visa_addr else Dmm_wrapper.name_addr[nickname]
-            self._dmm = instruments.agilent_multi_34410A('GPIB0::22::INSTR')
+            self._dmm = instruments.agilent_multi_34410A(visa_addr)
             set(self._dmm.aperture, 1)
             set(self._dmm.zero,True)
     """
