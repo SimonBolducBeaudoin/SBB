@@ -208,7 +208,7 @@ def combine_arrays(S_list,V_list):
         for i, (from_idx, goto_idx) in enumerate( _super_enumerate(*idx_list) ):
             # Copy repetitions into the final combined array  
             j = _np.ravel_multi_index(goto_idx,l) 
-            S[n:n+n_rep,j:j+1,...] = s[:,i,...]
+            S[n:n+n_rep,j:j+1,...] = s[:,i:i+1,...]
         n += n_rep
                 
         # Restoring shapes
