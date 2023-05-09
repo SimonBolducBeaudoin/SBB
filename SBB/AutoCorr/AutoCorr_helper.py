@@ -6,6 +6,8 @@ from SBB.Numpy_extra.numpy_extra import symetrize,find_nearest_A_to_a
 from SBB.Math_extra.Math_extra import fourier_transform
 from SBB.Phys import Tunnel_Junction 
 
+from SBB.AutoCorr.Deprecated import window_after_2ns
+
 def binV2_to_A2(S2,R_acq,mv_per_bin):
     """
     Used to convert SII(t)[bin_V**2] to SII(t)[A**2]
