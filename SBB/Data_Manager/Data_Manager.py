@@ -215,7 +215,7 @@ def combine_arrays(S_list,V_list):
     S.shape = (S.shape[0],) + l + S.shape[2:]
 
     # Return the combined arrays
-    return V, S
+    return V, S , n_reps
     
 def nan_collapse(S,axis=0):
     """
