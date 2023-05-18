@@ -1,12 +1,12 @@
 #!/bin/env/python
 #! -*- coding: utf-8 -*-
 
-import itertools
-import numpy
+import itertools as _ittools
+import numpy as _np
 
 def formated_tuple(frmt='{:0.2f}',T=tuple()):
     s = ''
-    T = numpy.array([T]) if (type(T)==float or type(T) == numpy.float64) else T 
+    T = _np.array([T]) if (type(T)==float or type(T) == _np.float64) else T 
     for t in T :
         s += frmt.format(t)
         s += ', '
@@ -17,7 +17,7 @@ def mklist(v):
     Force v to be compatible with a list (either list, tuple or numpy.array)
     Similar to np.asarray but for list
     """
-    v = v if isinstance(v, (list, tuple, numpy.ndarray)) else [v]
+    v = v if isinstance(v, (list, tuple, _np.ndarray)) else [v]
     return v
     
 def super_enumerate(*args):
@@ -39,8 +39,8 @@ def super_enumerate(*args):
         l = len(a)
         index_vec += ( range(l) , )
         
-    it_idx = itertools.product(*index_vec) 
-    it = itertools.product(*args)
+    it_idx = _ittools.product(*index_vec) 
+    it = _ittools.product(*args)
     return zip( *(it_idx,it) )
     
 def clean_function_source(func):

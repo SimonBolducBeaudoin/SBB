@@ -1,0 +1,17 @@
+*.h.gch
+*.o
+*.pyc
+*.dat
+*.pyd
+
+*.d
+
+Python/Experiments/
+
+*.npz
+
+*.pdf
+
+*.png
+
+*.a
