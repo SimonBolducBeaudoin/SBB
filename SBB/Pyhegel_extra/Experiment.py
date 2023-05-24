@@ -59,7 +59,10 @@ def get_all_with_key(files,key,index=None,cdn_axis=None,interlaced=None):
             if inter : 
                 cond.shape = cond.shape[:c_axis] + (cond.shape[c_axis]//2,2) + cond.shape[c_axis+1:]            
         Cond.append( cond )
-    return numpy.concatenate( [Cond], axis=0) # A concatenated array of all exp
+    try :
+        return numpy.concatenate( [Cond], axis=0) # A concatenated array of all exp
+    except ValueError :
+        return Cond
 
 def combine_repetitions(list_npz,single_copy,remove_zeros=True,remove_nans=True,np_load_kw={'allow_pickle':True,'fix_imports':True,'encoding':'latin1'}):
     """
