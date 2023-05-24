@@ -41,7 +41,7 @@ def polyfit_above_th(x,Y,Xth,deg=1):
     for j,(y,xth) in enumerate(zip(sub_flat(Y),Xth.flat)):
         x_pos   = x>=xth
         not_nan = ~(_np.isnan(y)) 
-        all_nan = all(not_nan==False)
+        all_nan = all( (x_pos & not_nan) ==False)
         if all_nan :
             P[j] = _np.nan
         else :
