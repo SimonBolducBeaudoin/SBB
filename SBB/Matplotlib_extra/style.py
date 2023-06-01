@@ -19,8 +19,21 @@ def trigger_style_0():
     matplotlib.rcParams['lines.markersize'] = 15
     matplotlib.rcParams['lines.markeredgewidth'] = 2.5
     
-def trigger_my_default_style():
+def trigger_style_1():
+    ratio =1.62
+    width = 14*0.75
+    matplotlib.rcParams['figure.figsize'] = [width,width/ratio]
+    matplotlib.rcParams['font.size'] = 20 
+    matplotlib.rcParams['lines.linewidth'] = 3
+    matplotlib.rcParams['lines.markersize'] = 15
+    matplotlib.rcParams['lines.markeredgewidth'] = 2.5
+
+    
+def trigger_default_style():
     trigger_style_0()
+    
+def trigger_small_style():
+    trigger_style_1()
     
 if __name__ == "__main__" :
     trigger_my_default_style()
