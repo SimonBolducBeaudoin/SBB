@@ -98,16 +98,9 @@ def compute_nu(V):
 @vectorize([float64(float64,float64,float64)])
 def Seq_of_t(tau,Te,R):
     """
-    Python implementation of Seq(tau)
-    
+    Seq_of_t(tau,Te,R)
     Time domain auto-correlation of a tunnel junction at thermal equilibrium
-    
-    Latex :
-        S_{eq} = - \frac{\pi (k T)^2}{R \hbar} \_np.sinh^{-2} \bigg( \frac{\pi k T}{\hbar} \tau \bigg)
-        
-    See Also
-    --------
-    Thesis : Mesures temporelles large bande ..., Simoneau , equation # 7.57
+    S_{eq} = - \frac{\pi (k T)^2}{R \hbar} \_np.sinh^{-2} \bigg( \frac{\pi k T}{\hbar} \tau \bigg)
         
     Parameters
     ----------
@@ -117,6 +110,11 @@ def Seq_of_t(tau,Te,R):
     Returns
     -------
     Seq : float     [A^2]       
+    
+    See Also
+    --------
+    Thesis : Mesures temporelles large bande ..., Simoneau , equation # 7.57
+    
     """
     if Te==0:
         return -1./tau**2*_C.hbar/(_np.pi*R)
@@ -126,6 +124,7 @@ def Seq_of_t(tau,Te,R):
 @vectorize([float64(float64,float64,float64,float64)])    
 def Sdc_of_t(tau,nu,Te,R):
     """
+    Sdc_of_t(tau,nu,Te,R)
     Time domain auto-correlation of a tunnel junction at Temperature T and DC bias Vdc
     
     Parameters
@@ -144,6 +143,7 @@ def Sdc_of_t(tau,nu,Te,R):
 @vectorize([float64(float64,float64,float64,float64)])    
 def DSdc_of_t(tau,nu,Te,R):
     """
+    DSdc_of_t(tau,nu,Te,R)
     Contribution to the auto-correlation of a tunnel junction at thermal equilibrium due to DC bias 
     Sometime called excess noise
     
@@ -165,6 +165,7 @@ def DSdc_of_t(tau,nu,Te,R):
 @vectorize([float64(float64,float64,float64,float64)])    
 def SPH_of_t(tau,nu,Te,R):
     """
+    SPH_of_t(tau,nu,Te,R)
     Temperature excess noise or Pauli-Heisenberg oscillations
     
     Parameters
@@ -191,25 +192,22 @@ def SPH_of_t(tau,nu,Te,R):
 @vectorize([float64(float64,float64,float64)])   
 def Seq_of_f(omega,Te,R):
     """
-    Python implementation of Seq(tau)
-    
+    Seq_of_f(omega,Te,R)
     Frequency domain auto-correlation of a tunnel junction at thermal equilibrium
+    S_{eq}(\omega) = \frac{2kT}{R} \frac{\hbar\omega}{2kT} \coth \frac{\hbar \omega}{ 2 k T }    
     
-    Latex :
-        S_{eq}(\omega) = \frac{2kT}{R} \frac{\hbar\omega}{2kT} \coth \frac{\hbar \omega}{ 2 k T }
-        
-    See Also
-    --------
-    Thesis : Mesures temporelles large bande ..., Simoneau , equation # 7.48
-        
     Parameters
     ----------
-    tau : float     Time delay [s]
+    omega : float     Time delay [s]
     Te  : float     Electron Temperature [K]
     R   : float     Junction resistance [Ohm]
     Returns
     -------
-    Seq : float     [A^2/Hz]       
+    Seq : float     [A^2/Hz]   
+
+    See Also
+    --------
+    Thesis : Mesures temporelles large bande ..., Simoneau , equation # 7.48    
     """
     if Te==0:
         return abs(_C.hbar*omega)/R
@@ -219,6 +217,9 @@ def Seq_of_f(omega,Te,R):
 
 @vectorize([float64(float64,float64,float64,float64)])   
 def Sdc_of_f(omega,nu,Te,R):
+    """
+    Sdc_of_f(omega,nu,Te,R)
+    """
     return (Seq_of_f(nu-omega,Te,R)+Seq_of_f(nu+omega,Te,R))/2.
 #Sdc_of_f = _MemMut(_np.vectorize(_Sdc_of_f))
 
