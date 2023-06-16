@@ -32,7 +32,7 @@ def plot_interval(ax,x,Y,std=True,n_sigma=3,min_max=True,label=None,linestyle=No
     Y_m = _np.nanmean( Y,axis=0 )
     not_nan = ~(_np.isnan(Y_m)) 
     
-    all_nan = all( not_nan ==False)
+    all_nan = _np.all( not_nan ==False)
     
     if all_nan :
         line = None

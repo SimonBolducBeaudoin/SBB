@@ -3,22 +3,22 @@
 
 
 
-import  numpy
+import  numpy as _np
 
 def fourier_transform(F,dt):
     """
     This gives and approximation of F(f) or fourier transform of F(t) if you prefer
     and is not directly the DFT of F(t)    
     """
-    return dt*numpy.fft.rfft(F)
+    return dt*_np.fft.rfft(F)
 def ifourier_transform(F,dt,n):
     """
     See Also
     -------
         fourier_transform
     """
-    irfft = numpy.fft.irfft
-    shift = numpy.fft.fftshift
+    irfft = _np.fft.irfft
+    shift = _np.fft.fftshift
     return (1.0/dt)*shift(irfft(F,n=n))
 
 #########################
@@ -34,7 +34,7 @@ def SE(mu2k,muk,n):
         If these moments are not centered then the definition is good for none centered moment
         Idem for centered moment
     """
-    return numpy.sqrt(numpy.abs(mu2k-muk**2)/float(n))  
+    return _np.sqrt(_np.abs(mu2k-muk**2)/float(n))  
 
 #####################
 # Moments cumulants #
@@ -69,7 +69,7 @@ def compute_differential(X):
     """
     shape           = X.shape
     shape           = (2,) + shape[:-1] + ( shape[-1]-1, )
-    X_diff          = numpy.zeros(shape)
+    X_diff          = _np.zeros(shape)
     X_diff[0,...]   = X[...,1:]
     X_diff[1,...]   = X[...,:-1]
     return X_diff
@@ -78,7 +78,7 @@ def central_derivative_3points(dx,y):
     """
     bigO dx**2
     """
-    out = zeros(y.shape)
+    out = _np.zeros(y.shape)
     out[1:-1] = ( -y[:-2] + 0*y[1:-1] + y[2:]  )/(2.*dx)
     out[0] = (y[1]-y[0])/dx
     out[-1]= (y[-1]-y[-2])/dx
