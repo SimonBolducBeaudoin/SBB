@@ -171,7 +171,7 @@ def lstsq_2D(x0,x1,y,para,fit_func,tol=1e-8,full_output=0):
     
 def lstsq(x,y,para,fit_func,tol=1e-8,full_output=0): 
     def residuals(p):
-        return y-fit_func(x,x1,p)
+        return y-fit_func(x,p)
     return _leastsq(residuals,para,full_output=full_output,ftol=tol,xtol=tol)
     
     
