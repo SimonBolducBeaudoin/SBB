@@ -7,7 +7,7 @@ def nanplot(ax,x,y,**kwargs):
     not_nan = ~(_np.isnan(y)) 
     return ax.plot(x[not_nan],y[not_nan],**kwargs)
 
-def plot_interval(ax,x,Y,std=True,n_sigma=3,min_max=True,label=None,linestyle=None,marker=None,alpha=[None,0.75,0.5], **kwargs):
+def plot_interval(ax,x,Y,std=True,n_sigma=3,min_max=True,label=None,linestyle=None,marker=None,markersize=None,alpha=[None,0.75,0.5], **kwargs):
     """
     Almost the same as plot but plota Y.mean(axis=0) and (optionnaly) some visual metrics on deviation.
     
@@ -37,7 +37,7 @@ def plot_interval(ax,x,Y,std=True,n_sigma=3,min_max=True,label=None,linestyle=No
     if all_nan :
         line = None
     else :
-        line, = ax.plot(x[not_nan], Y_m[not_nan] ,label=label,marker=marker,linestyle=linestyle,**kwargs)
+        line, = ax.plot(x[not_nan], Y_m[not_nan] ,label=label,marker=marker,markersize=markersize,linestyle=linestyle,**kwargs)
         if std :
             Y_std = _np.nanstd( Y,axis=0 )
             ax.fill_between(x[not_nan], (Y_m + n_sigma*Y_std)[not_nan], (Y_m - n_sigma*Y_std)[not_nan], facecolor = line.get_color(),alpha=alpha[1],**kwargs)
@@ -66,10 +66,10 @@ def verts_to_fill_between(x, y1, y2=0,closed=True):
     """
     Computes the vertices for fill_between 
     """
-    x, y1, y2 = np.broadcast_arrays(np.atleast_1d(x), y1, y2)
+    x, y1, y2 = _np.broadcast_arrays(_np.atleast_1d(x), y1, y2)
     
     N = len(x)
-    X = np.zeros((2 * N + 2, 2), float)
+    X = _np.zeros((2 * N + 2, 2), float)
     
     start = x[0], y2[0]
     end = x[-1], y2[-1]
@@ -83,7 +83,7 @@ def verts_to_fill_between(x, y1, y2=0,closed=True):
     X[N + 2:, 1] = y2[::-1]
     
     if closed : # closing the polygone
-        X = np.concatenate([X, X[0:1]]) 
+        X = _np.concatenate([X, X[0:1]]) 
     return X  
 
 def scope_update(ax,x,y,line_idx=0,option=None) :
