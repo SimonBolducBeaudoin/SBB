@@ -1,8 +1,5 @@
 #!/bin/env/python
 #! -*- coding: utf-8 -*-
-
-
-
 import  numpy as _np
 
 def fourier_transform(F,dt):
@@ -74,14 +71,35 @@ def compute_differential(X):
     X_diff[1,...]   = X[...,:-1]
     return X_diff
 
+###############
+# dx variable #
+###############
+
+def dydx_centered_3pnts(x,y):
+    """
+    différence centré pour espacement dx inégale
+    
+    reference : https://faculty.ksu.edu.sa/sites/default/files/l8_2.pdf
+    """
+    out = _np.full(y.shape,_np.nan)
+    out[...,0]    = (y[...,1]-y[...,0])/(x[...,1]-x[...,0])
+    out[...,1:-1] = ( (x[...,1:-1]-x[...,2:])              /((x[...,:-2] -x[...,1:-1])*(x[...,:-2 ]-x[...,2:  ])) )*y[...,0:-2] + \
+                    ( (2*x[...,1:-1]-x[...,0:-2]-x[...,2:])/((x[...,1:-1]-x[...,0:-2])*(x[...,1:-1]-x[...,2:  ])) )*y[...,1:-1] +  \
+                    ( (x[...,1:-1]-x[...,0:-2])            /((x[...,2:]  -x[...,:-2 ])*(x[...,2:  ]-x[...,1:-1])) )*y[...,2:  ]
+    out[...,-1]       = (y[...,-1]-y[...,-2])/(x[...,-1]-x[...,-2])
+    return out
+
+##########
+# FIX dx #
+##########
 def central_derivative_3points(dx,y):
     """
     bigO dx**2
     """
     out = _np.zeros(y.shape)
-    out[1:-1] = ( -y[:-2] + 0*y[1:-1] + y[2:]  )/(2.*dx)
-    out[0] = (y[1]-y[0])/dx
-    out[-1]= (y[-1]-y[-2])/dx
+    out[...,1:-1] = ( -y[...,:-2] + y[...,2:]  )/(2.*dx)
+    out[...,0] = (y[...,1]-y[...,0])/dx
+    out[...,-1]= (y[...,-1]-y[...,-2])/dx
     return out
 
 def central_derivative_9points(dx,y):
