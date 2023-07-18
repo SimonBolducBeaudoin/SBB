@@ -1,20 +1,20 @@
 #!/bin/bash
 
-#make -C Cpp/Autocorrelation/ -j4
-#make -C Cpp/Benchmark_test/ -j4
-#make -C Cpp/Bispectrum/ -j4
-#make -C Cpp/Convolution/ -j4
-#make -C Cpp/FFT/ -j4
-make -C Cpp/FFTW_extra/ -j4 
-make -C Cpp/Math_extra/ -j4 
-make -C Cpp/Omp_extra/ -j4 
-make -C Cpp/Moments_cumulants/ -j4 
-make -C Cpp/Numerical_integration/ -j4 
-make -C Cpp/Special_functions/ -j4 
-make -C Cpp/Windowing/ -j4 
-make -C Cpp/aCorrs-OTF/ -j4 
-make -C Cpp/Time_quadratures/ -j4 
-make -C Cpp/Histograms/ -j4 
+#make -C AFAP/Autocorrelation/ -j4
+#make -C AFAP/Benchmark_test/ -j4
+#make -C AFAP/Bispectrum/ -j4
+#make -C AFAP/Convolution/ -j4
+#make -C AFAP/FFT/ -j4
+make -C AFAP/FFTW_extra/ -j4 
+make -C AFAP/Math_extra/ -j4 
+make -C AFAP/Omp_extra/ -j4 
+make -C AFAP/Moments_cumulants/ -j4 
+make -C AFAP/Numerical_integration/ -j4 
+make -C AFAP/Special_functions/ -j4 
+make -C AFAP/Windowing/ -j4 
+make -C AFAP/aCorrs-OTF/ -j4 
+make -C AFAP/Time_quadratures/ -j4 
+make -C AFAP/Histograms/ -j4 
 
 
 
