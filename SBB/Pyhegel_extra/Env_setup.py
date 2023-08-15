@@ -4,38 +4,24 @@
 import  sys, os, platform
 import time
 
-def gen_exp_default_paths(python_2_7_scripts_root,exp_dir,**options):
-    """
-        Contient l'information de ma structure de fichier
-    """     
-    _test_dir   = "TEST"
-    # Default arguments
-    test        = options.get('test',True)
+def gen_exp_default_paths(exp_root="5-Experiments",exp_dir="Unkown",module="Local_Module"):   
     paths = \
     {
-        ### MODIFY ###
-        '_experiments_root'     : "5-Experiments",                  # Relative to python_scripts_root
+        '_experiments_root'     : exp_root,                         # Relative to python_scripts_root
         '_current_experiment'   : exp_dir,                          # Relative to experiments_root
-        '_lib'                  : "lib",                            # Relative to python_scripts_root
-        '_pyhegel_wrappers'     : "Pyhegel_wrappers.py",               # Relative to _lib
-        '_test_dir'             : _test_dir,                        # Relative experiments_root
-        '_saves'                : time.strftime('%y%m%d-%H%M'),     # Relative to pwd/current_experiment or Test
-        'mingw_binaries'        : 'C:\\cygwin64\\usr\\x86_64-w64-mingw32\\sys-root\\mingw\\bin' 
+        '_lib'                  : module,                           # Relative to current_experiment
+        '_test_dir'             : "TEST",                           # Relative experiments_root
+        '_saves'                : time.strftime('%y%m%d-%H%M'),     # Relative to pwd/current_experiment 
     }
-    paths['python_scripts_root']= python_2_7_scripts_root
+    paths['python_scripts_root']= "C:\\Projets\\Time_Domain_Optic\\Python_2_7"
     paths['experiments_root']   = paths['python_scripts_root']  + os.sep + paths['_experiments_root']  
     paths['current_experiment'] = paths['experiments_root']     + os.sep + paths['_current_experiment']  
-    paths['custom_libraries']   = paths['python_scripts_root']  + os.sep + paths['_lib'] # Where My .pyd are
-    paths['pyhegel_wrappers']      = paths['python_scripts_root']  + os.sep + paths['_lib'] + os.sep + paths['_pyhegel_wrappers']
+    paths['Local_Module']       = paths['current_experiment']   + os.sep + paths['_lib'] 
     paths['scripts']            = paths['experiments_root']     + os.sep + paths['_current_experiment'] 
-    paths['pwd']                = paths['current_experiment'] 
     paths['test']               = paths['experiments_root']     + os.sep + paths['_test_dir']
-    if test :
-        paths['saves'] = paths['test']
-    else :
-        paths['saves'] = paths['pwd']+ os.sep + paths['_saves']
+    paths['saves'] = paths['test']
     return paths
-        
+
 def gen_exp_default_scripts():
     """
         Les scripts par default d'une experience
@@ -43,21 +29,34 @@ def gen_exp_default_scripts():
     scripts = \
     {
         'Aquisition'            : 'Aquisition.py',
-        'Pyhegel_tools_local'   : 'Pyhegel_tools_local.py',
     }
     return scripts
     
-def set_exp_environment(python_2_7_scripts_root,exp_dir,**options):
+def set_exp_environment(paths,scripts=None,test=False):
     """
-    Todos : 
-        - __doc__
-        -
+    See : gen_exp_default_paths
     """        
-    paths = gen_exp_default_paths(python_2_7_scripts_root,exp_dir,**options)
-    scripts = gen_exp_default_scripts()
-    os.chdir(paths['pwd'])
-    if paths['custom_libraries'] not in sys.path :
-        sys.path.append(paths['custom_libraries'])
-    if ( platform.system() == 'Windows' ) and ( paths['mingw_binaries'] not in os.environ['PATH'] ) :
-        os.environ['PATH'] = paths['mingw_binaries']+os.path.pathsep+os.environ['PATH']
-    return scripts,paths   
+    if not(test) :
+        paths['saves'] = paths['current_experiment']+ os.sep + paths['_saves']    
+    else : 
+        paths['saves'] = paths['test']
+        
+    if scripts is None :
+        scripts = gen_exp_default_scripts()
+    try :
+        from pyHegel.commands import make_dir
+        make_dir(paths['saves']) # Tell to pyhegel to make the saves directory and to save data there.
+    except :
+        pass
+    if paths['Local_Module'] not in sys.path :
+        sys.path.append(paths['Local_Module'])
+    return scripts,paths  
+
+def add_Cygwin_mingw_to_path(mingw_path = 'C:\\cygwin64\\usr\\x86_64-w64-mingw32\\sys-root\\mingw\\bin' ):
+    if os.name == 'nt':
+        if platform.python_version_tuple()[0]== '2' : #python 2
+            if ( mingw_path not in os.environ['PATH'] ) :
+                os.environ['PATH'] = mingw_path+os.path.pathsep+os.environ['PATH']
+        else : # python 3      
+            os.add_dll_directory("C:/cygwin64/usr/x86_64-w64-mingw32/sys-root/mingw/bin")
+        
