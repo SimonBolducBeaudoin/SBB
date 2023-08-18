@@ -5,4 +5,4 @@
     A module that adds on top of numpy
 """
 
-__all__ = ["Memoize","Threading_extra"]
+__all__ = ["Memoize","Threading_extra","Monitor"]
