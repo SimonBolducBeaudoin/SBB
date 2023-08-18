@@ -2,7 +2,7 @@
 #! -*- coding: utf-8 -*-
 
 import numpy
-from SBB.Numpy_extra.numpy_extra import sub_flatten 
+from SBB.Numpy_extra.numpy_extra import sub_flatten_no_copy
 
 """
 This module is intended to help with the use of SBB.Histogram.histograms
@@ -37,8 +37,8 @@ def compute_moments_par(Hs,x,order = 8,Cxs=None):
         moments[i,j,:] = h.std_moments(bins,order,no_clip=True)
         
     moments = numpy.full( Hs.shape + (order+1,), numpy.nan ) 
-    ms_shape = sub_flatten(moments,axis=-2) # this function modifies the input's shape
-    Hs_shape = sub_flatten(Hs,axis=-1)      # this function modifies the input's shape
+    ms_shape = sub_flatten_no_copy(moments,axis=-2) # this function modifies the input's shape
+    Hs_shape = sub_flatten_no_copy(Hs,axis=-1)      # this function modifies the input's shape
     
     threads = [ threading.Thread(target= _moments , args = (h,i,j,x*Cx,order)) for i, (H,Cx) in enumerate( zip( Hs, Cxs.flat ) ) for j,h in enumerate(H)]        
     for th in threads :
@@ -103,12 +103,12 @@ def compute_moments(Hs,x,order = 8,Cxs=None):
         Cxs.shape = Hs.shape[:-1]
     order : computing standardized moments up to this order
     """ 
-    if not(Cxs):
+    if Cxs is None :
         Cxs = numpy.ones( Hs.shape[:-1] )
         
     moments = numpy.full( Hs.shape + (order+1,), numpy.nan ) 
-    ms_shape = sub_flatten(moments,axis=-2) # this function modifies the input's shape
-    Hs_shape = sub_flatten(Hs,axis=-1)      # this function modifies the input's shape
+    ms_shape = sub_flatten_no_copy(moments,axis=-2) # this function modifies the input's shape
+    Hs_shape = sub_flatten_no_copy(Hs,axis=-1)      # this function modifies the input's shape
     for i, (H,Cx) in enumerate( zip( Hs, Cxs.flat ) ): 
         bins = x*Cx
         for j, h  in enumerate( H ) : 
