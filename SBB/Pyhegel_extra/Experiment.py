@@ -25,7 +25,7 @@ def dict_to_attr(self,dict,user_key_to_attribute_key={}):
     for key in dict :
         setattr(self,conv[key],dict[key]) if key in conv else setattr(self,key,dict[key])
 
-def get_all_with_key(files,key,index=None,cdn_axis=None,interlaced=None):
+def get_all_with_key(files,key,EVAL=""):
     """
     Load the data from a list of files and returns a concatenated array data['key'].
     Parameters
@@ -34,14 +34,10 @@ def get_all_with_key(files,key,index=None,cdn_axis=None,interlaced=None):
     key   : string for the key to be loaded in each file
     
     (optional arguments)
-        index : int index to be called after the key, data[key][index]
-            Ex : data['_conditions'][index] to load experimental conditions
-        
-        (the following arguments are used together)
-        cdn_axis : list of axis in the array data['key'] 
-        interlaced : list of bool indicating if the conditions is interlaced or not
-            Conditions and reference will be seperated in two dimensions
-            
+        eval(str) : extra code be called after the key, data[key] + "eval"
+            Ex : eval = "[0]" # calling index 0 after getting data
+            # will produce the following code
+            eval( "data['key']"+"[0]" )             
     Returns
     --------
     A concatenated array of all data[key]
@@ -52,12 +48,8 @@ def get_all_with_key(files,key,index=None,cdn_axis=None,interlaced=None):
     Cond = []
     for file in files :
         data = _np.load(file,allow_pickle=True)
-        data = dict(data)
-        cond = data[key] if not(index) else data[key][index]
-        # Adding a dim for references for each conditions that is interlaced 
-        for c_axis,inter in zip( cdn_axis, interlaced ):
-            if inter : 
-                cond.shape = cond.shape[:c_axis] + (cond.shape[c_axis]//2,2) + cond.shape[c_axis+1:]            
+        s_data_key = "data[key]"
+        cond = eval(s_data_key + EVAL) 
         Cond.append( cond )
     try :
         return _np.concatenate( [Cond], axis=0) # A concatenated array of all exp
