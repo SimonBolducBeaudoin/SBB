@@ -43,8 +43,6 @@ def get_all_with_key(files,key,EVAL=""):
     A concatenated array of all data[key]
     
     """
-    cdn_axis = mklist(cdn_axis)
-    interlaced = mklist(interlaced)
     Cond = []
     for file in files :
         data = _np.load(file,allow_pickle=True)
@@ -56,7 +54,7 @@ def get_all_with_key(files,key,EVAL=""):
     except ValueError :
         return Cond
 
-def combine_repetitions(list_npz,single_copy,remove_zeros=True,remove_nans=True,np_load_kw={'allow_pickle':True,'fix_imports':True,'encoding':'latin1'}):
+def combine_repetitions(list_npz,single_copy=['_conditions','_meta_info','_options','SBB_version'],remove_zeros=True,remove_nans=True,np_load_kw={'allow_pickle':True,'fix_imports':True,'encoding':'latin1'}):
     """
     This function is meant to be use to fuse together repetitions of an experiement (Same conditions/Same everything).
     
@@ -84,15 +82,14 @@ def combine_repetitions(list_npz,single_copy,remove_zeros=True,remove_nans=True,
     n_measures : int
         The number of repetitions of the experimen (summed over all repetitions)
         
-    """ 
-    single_copy += ['_conditions','_meta_info','_options','SBB_version'] # can this be moved to a default argument ?
+    """
     
     l_data =list()
     n_measure = 0
     for s in list_npz :
         data = _np.load(s,**np_load_kw)
         data = dict(data)
-        n,Vdc,Vac = data['_conditions']
+        n,_,_ = data['_conditions']
         n_measure += n
         l_data.append(data)
 
@@ -101,17 +98,17 @@ def combine_repetitions(list_npz,single_copy,remove_zeros=True,remove_nans=True,
         if k in single_copy :
             D[k] = l_data[0][k]
         else :
-            tmp = list()
-            for data in l_data:
-                tmp.append(data[k])
             if l_data[0][k].dtype == object : # All non np.array data
-                D[k] = _np.concatenate([tmp], axis=0)
-            else : # All np.array data
+                tmp = [ [data[k],] for data in l_data ]
+            elif l_data[0][k].ndim == 1 : # All 1D np.array data
+                tmp = [ data[k][None,...] for data in l_data ]
+            else :
+                tmp = [ data[k] for data in l_data ]
                 if remove_zeros :
                     tmp = [remove_zeros_subarrays(t) for t in tmp ] # removes empty/zeros experiemental repetitions
                 if remove_nans :
                     tmp = [remove_nan_subarrays(t) for t in tmp ]   # removes empty/nans experiemental repetitions
-                D[k] = _np.concatenate(tmp, axis=0)
+            D[k] = _np.concatenate(tmp, axis=0)
     return D , n_measure
 
 ####################
