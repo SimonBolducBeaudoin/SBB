@@ -41,6 +41,10 @@
 *.png
 *.a
 
+# Jupyter notebook
+*.ipynb
+*.ipynb_checkpoints
+
 # Other
 *.dat
 
