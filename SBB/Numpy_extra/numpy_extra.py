@@ -202,5 +202,81 @@ def find_where_A_equal_B(A,B):
     """
     return [i for a in  A for i,b in enumerate(B) if a == b]
      
-#if __name__ == '__main__':
-    # Scipt that test/show the functionnality of the library
+def reshape_axis(Y, new_axis_shape,axis=-1):
+    """
+    Reshape a Numpy array along a specified axis by changing its size and structure.
+
+    Parameters:
+        Y (numpy.ndarray): The input array to be reshaped.
+        axis (int): The axis along which to reshape the array. Use -1 for the last axis.
+        new_axis_shape (tuple): The desired shape for the new axis.
+
+    Returns:
+        numpy.ndarray: A reshaped array based on the specified axis and new shape.
+
+    Example:
+        >>> import numpy as np
+        >>> Y = np.array([[1, 2], [3, 4], [5, 6]])
+        >>> reshaped = reshape_axis(Y, axis=1, new_axis_shape=(1, 2, 1))
+        >>> print(reshaped.shape)
+        (3, 1, 2, 1)
+    """
+    if axis == -1:
+        shape = Y.shape[:-1] + new_axis_shape
+    elif axis == 0:
+        shape = new_axis_shape + Y.shape[1:]
+    elif Y.ndim == 1:
+        shape = new_axis_shape
+    else:
+        shape = Y.shape[:axis] + new_axis_shape + Y.shape[axis + 1:]
+    return Y.reshape(shape)
+
+def slice_axis(arr, slice_obj, axis):
+    """
+    Apply a slice along a specified axis of a Numpy array.
+
+    Parameters:
+        arr (numpy.ndarray): The input array to be sliced.
+        slice_obj (slice): The slice object to apply along the specified axis.
+        axis (int): The axis along which to apply the slice.
+
+    Returns:
+        numpy.ndarray: A sliced array based on the specified axis and slice.
+
+    Example:
+        >>> import numpy as np
+        >>> X = np.random.random((2, 3, 4, 5))
+        >>> sliced_result = slice_axis(X, slice(1, 4), axis=2)
+        >>> print(sliced_result.shape)
+        (2, 3, 3, 5)
+    """
+    arr_swapped = _np.swapaxes(arr, axis, -1)
+    arr_sliced = arr_swapped[..., slice_obj]
+    return _np.swapaxes(arr_sliced, axis, -1)
+
+def slice_axes(arr, slices_list):
+    """
+    Apply a list of slices to specific axes of a Numpy array.
+
+    Parameters:
+        arr (numpy.ndarray): The input array to be sliced.
+        slices_list (list): A list of tuples, where each tuple consists of an axis index and a slice object.
+
+    Returns:
+        numpy.ndarray: A sliced array based on the specified slices.
+
+    Example:
+        >>> import numpy as np
+        >>> X = np.random.random((2, 3, 4, 5))
+        >>> slices_to_apply = [(2, '::-1'), (0, 1), (1, slice(1, 3))]
+        >>> result = slice_axes(X, slices_to_apply)
+        >>> print(result.shape)
+        (1, 2, 3, 5)
+    """
+    full_slices = [slice(None) for _ in range(arr.ndim)]
+    for axis, slice_obj in slices_list:
+        full_slices[axis] = slice_obj
+    expression = 'arr[' + ','.join(map(str, full_slices)) + ']'
+    return eval(expression)
+
+
