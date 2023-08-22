@@ -28,7 +28,19 @@ Default units are A² for autocovariance and A²/Hz for spectral densities.
     - Or you can multiply the A²/Hz result by R/(2*C.k).
 """
 
-
+@vectorize([float64(float64,float64,float64)])
+def R_coulomb_block(I,Vo,D):
+    """
+    A resistance model when there is coulomb blockade
+    V = RI + Vo tanh(I/D)
+    Return Vo tanh(I/D)/I ==> The difference in resistance due to the coulomb blockade
+    tanh(x)/x when x = 0 ==> 1 
+    """
+    if I == 0.0:
+        return Vo/abs(D)
+    else :
+        return Vo*_np.tanh(I/abs(D))/I
+        
 #################################################################################
 @vectorize([float64(float64),float64(int64)])
 def coth(x):
