@@ -76,8 +76,13 @@ class sub_flatiter(object) :
         self.j_max      = self.flat_shape[0] - 1
     def __iter__(self):
         return self
+    def next(self):
+        """
+        For python 2 compatibility
+        """
+        return self.__next__()
     def __next__(self):
-        if (self.j >= self.j_max -1) :
+        if (self.j >= self.j_max ) :
             raise StopIteration
         self.j +=1
         # Flattening the arrays without copying.
@@ -100,7 +105,7 @@ def sub_flat(arr,axis=-1):
         iterates over the first dimension of an array of shape (6,4,5)
         without modifying the initial array.
     """
-    return sub_flatiter(arr,)
+    return sub_flatiter(arr,axis=axis)
 
 def sub_flatten(arr,axis=-1):
     return arr.reshape( (int(_np.prod(arr.shape[:axis])),) + arr.shape[axis:] ) 
