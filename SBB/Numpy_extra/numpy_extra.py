@@ -236,6 +236,35 @@ def reshape_axis(Y, new_axis_shape,axis=-1):
         shape = Y.shape[:axis] + new_axis_shape + Y.shape[axis + 1:]
     return Y.reshape(shape)
 
+def fuse_axes(Y, axes_to_fuse):
+    """
+    Fuse a list of axes together into the first axis of the list.
+
+    Parameters:
+        Y (numpy.ndarray): The input array to be reshaped.
+        axes_to_fuse (tuple): A tuple of axis indices to fuse together.
+
+    Returns:
+        numpy.ndarray: An array with specified axes fused.
+
+    Example:
+        >>> import numpy as np
+        >>> Y = np.random.rand(2, 3, 4)
+        >>> fused = fuse_axes(Y, axes_to_fuse=(1, 2))
+        >>> print(fused.shape)  # Output: (2, 12)
+    """
+    new_shape = list(Y.shape)
+    new_axis_size = 1
+    for axis in axes_to_fuse:
+        new_axis_size *= new_shape[axis]
+    for axis in sorted(axes_to_fuse, reverse=True):
+        new_shape.pop(axis)
+    new_shape.insert(axes_to_fuse[0], new_axis_size)
+    
+    destination = [ a+axes_to_fuse[0] for a in range(len(axes_to_fuse)) ]
+    Y = _np.moveaxis(Y, axes_to_fuse, destination )
+    return Y.reshape(new_shape)
+
 def slice_axis(arr, slice_obj, axis):
     """
     Apply a slice along a specified axis of a Numpy array.
