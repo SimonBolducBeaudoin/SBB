@@ -235,6 +235,15 @@ def Sdc_of_f(omega,nu,Te,R):
     return (Seq_of_f(nu-omega,Te,R)+Seq_of_f(nu+omega,Te,R))/2.
 #Sdc_of_f = _MemMut(_np.vectorize(_Sdc_of_f))
 
+@vectorize([float64(float64,float64,float64,float64,float64)])   
+def Sdc_asym_of_f(omega,nu,nu0,Te,R):
+    """
+    Asymetric noise due to voltage offset ( ex :  if there is presence of thermoelectric effect )
+    Sdc_of_f(omega,nu,nu0,Te,R)
+    i.e. ( S(V-V0) - S(V+V0) )/2
+    """
+    return ( Sdc_of_f(omega,nu-nu0,Te,R)-Sdc_of_f(omega,nu+nu0,Te,R) )/2.0
+
 def bessel_weights(n,z):
     return _besselJ(Ns,z)**2.
 
