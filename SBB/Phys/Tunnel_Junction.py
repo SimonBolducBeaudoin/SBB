@@ -245,7 +245,7 @@ def Sdc_asym_of_f(omega,nu,nu0,Te,R):
     return ( Sdc_of_f(omega,nu-nu0,Te,R)-Sdc_of_f(omega,nu+nu0,Te,R) )/2.0
 
 def bessel_weights(n,z):
-    return _besselJ(Ns,z)**2.
+    return _besselJ(n,z)**2.
 
 def _Spa_of_f(omega,nu,nuac,Omega,Te,R,nBessel=21):
     if not nuac*Omega:
