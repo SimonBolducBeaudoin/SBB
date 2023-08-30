@@ -118,3 +118,9 @@ def compute_moments(Hs,x,order = 8,Cxs=None):
     Hs.shape = Hs_shape
     moments.shape = ms_shape
     return moments
+   
+def std_moments_to_moments(moments):
+    for i in range(moments.shape[-1]):
+        if i > 2 :
+            moments[...,i] *= moments[...,2]**(float(i)/2.0)
+    return moments
