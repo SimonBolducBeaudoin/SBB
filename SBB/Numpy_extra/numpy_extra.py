@@ -284,9 +284,10 @@ def slice_axis(arr, slice_obj, axis):
         >>> print(sliced_result.shape)
         (2, 3, 3, 5)
     """
-    arr_swapped = _np.swapaxes(arr, axis, -1)
-    arr_sliced = arr_swapped[..., slice_obj]
-    return _np.swapaxes(arr_sliced, axis, -1)
+    full_slices = [slice(None) for _ in range(arr.ndim)]
+    full_slices[axis] = slice_obj
+    expression = 'arr[' + ','.join(map(str, full_slices)) + ']'
+    return eval(expression)
 
 def slice_axes(arr, slices_list):
     """
