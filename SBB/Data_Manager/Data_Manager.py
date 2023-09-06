@@ -134,7 +134,7 @@ def sort_A_acording_to_B(A_list,B_list):
     A   = [ (_np.concatenate([v[n] for v in A_list])[s[1]] ) for n,s in zip(range(n_dim_cdn),S) ]
     return A,B
     
-def combine_arrays(S_list,V_list):
+def combine_arrays(S_list,V_list,remove_nans=True,remove_zeros=False):
     """
     Combines experimental data (S_list) in order not to loose repetitions of experimental conditions.
     
@@ -176,6 +176,11 @@ def combine_arrays(S_list,V_list):
     if all( [ len(V_list[0]) != len(V) for V in V_list ] ) :
         raise Exception("len (V_0) != len(V_n)")
     
+    if remove_nans :
+        S_list = [ remove_nan_subarrays(Sn) for Sn in S_list ]
+    if remove_zeros :
+        S_list = [ remove_zeros_subarrays(Sn) for Sn in S_list ]
+    
     # List of the number of repetitions for each Sn
     n_reps = [ len(Sn) for Sn in S_list ]
     
@@ -213,7 +218,7 @@ def combine_arrays(S_list,V_list):
                 
         # Restoring shapes
     S.shape = (S.shape[0],) + l + S.shape[2:]
-
+    
     # Return the combined arrays
     return V, S , n_reps
     
