@@ -53,10 +53,10 @@ def Append_NPZ(file,compress=True,**data):
     Notes if the archive is compressed apperenttly the only way out is to decrompress and compress.
     for a non compressed zip file the code could be modified to simply append.
     """
-    with dict(_np.load(file,allow_pickle=True)) as f:
-        f.update(data)
-        if compress :
-            _np.savez_compressed(file, **f)
-        else :
-            _np.savez(file, **f)
+    f = dict(_np.load(file,allow_pickle=True))
+    f.update(data)
+    if compress :
+        _np.savez_compressed(file, **f)
+    else :
+        _np.savez(file, **f)
     

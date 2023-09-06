@@ -7,7 +7,7 @@ import itertools as _itertools
 import os as _os
 
 from SBB.Python_extra.python_extra import mklist
-from SBB.Data_Manager.Data_Manager import remove_zeros_subarrays, remove_nan_subarrays
+from SBB.Data_Manager.MergeArrays import remove_zeros_subarrays, remove_nan_subarrays
 
 import pkg_resources  # part of setuptools
 __SBB_version__ = {'SBB':pkg_resources.require("SBB")[0].version}
