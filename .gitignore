@@ -53,3 +53,5 @@ build/
 dist/
 *.egg-info/
 *.eggs/
+
+SBB/AutoCorr/acorrs_otf.py
