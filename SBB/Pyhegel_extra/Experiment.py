@@ -1,13 +1,13 @@
 #!/bin/env/python
 #! -*- coding: utf-8 -*-
 
-import time
-import numpy
-import itertools
-import os
+import time as _time
+import numpy as _np
+import itertools as _itertools
+import os as _os
 
-from SBB.Utilities.python_extra import mklist
-from SBB.Utilities.Data_Manager import remove_zeros_subarrays
+from SBB.Python_extra.python_extra import mklist
+from SBB.Data_Manager.MergeArrays import remove_zeros_subarrays, remove_nan_subarrays
 
 import pkg_resources  # part of setuptools
 __SBB_version__ = {'SBB':pkg_resources.require("SBB")[0].version}
@@ -25,7 +25,7 @@ def dict_to_attr(self,dict,user_key_to_attribute_key={}):
     for key in dict :
         setattr(self,conv[key],dict[key]) if key in conv else setattr(self,key,dict[key])
 
-def get_all_with_key(files,key,index=None,cdn_axis=None,interlaced=None):
+def get_all_with_key(files,key,EVAL=""):
     """
     Load the data from a list of files and returns a concatenated array data['key'].
     Parameters
@@ -34,34 +34,27 @@ def get_all_with_key(files,key,index=None,cdn_axis=None,interlaced=None):
     key   : string for the key to be loaded in each file
     
     (optional arguments)
-        index : int index to be called after the key, data[key][index]
-            Ex : data['_conditions'][index] to load experimental conditions
-        
-        (the following arguments are used together)
-        cdn_axis : list of axis in the array data['key'] 
-        interlaced : list of bool indicating if the conditions is interlaced or not
-            Conditions and reference will be seperated in two dimensions
-            
+        eval(str) : extra code be called after the key, data[key] + "eval"
+            Ex : eval = "[0]" # calling index 0 after getting data
+            # will produce the following code
+            eval( "data['key']"+"[0]" )             
     Returns
     --------
     A concatenated array of all data[key]
     
     """
-    cdn_axis = mklist(cdn_axis)
-    interlaced = mklist(interlaced)
     Cond = []
     for file in files :
-        data = numpy.load(file,allow_pickle=True)
-        data = dict(data)
-        cond = data[key] if not(index) else data[key][index]
-        # Adding a dim for references for each conditions that is interlaced 
-        for c_axis,inter in zip( cdn_axis, interlaced ):
-            if inter : 
-                cond.shape = cond.shape[:c_axis] + (cond.shape[c_axis]//2,2) + cond.shape[c_axis+1:]            
+        data = _np.load(file,allow_pickle=True)
+        s_data_key = "data[key]"
+        cond = eval(s_data_key + EVAL) 
         Cond.append( cond )
-    return numpy.concatenate( [Cond], axis=0) # A concatenated array of all exp
+    try :
+        return _np.concatenate( [Cond], axis=0) # A concatenated array of all exp
+    except ValueError :
+        return Cond
 
-def combine_repetitions(list_npz,single_copy,remove_zeros=True):
+def combine_repetitions(list_npz,single_copy=['_conditions','_meta_info','_options','SBB_version'],remove_zeros=True,remove_nans=True,np_load_kw={'allow_pickle':True,'fix_imports':True,'encoding':'latin1'}):
     """
     This function is meant to be use to fuse together repetitions of an experiement (Same conditions/Same everything).
     
@@ -78,24 +71,25 @@ def combine_repetitions(list_npz,single_copy,remove_zeros=True):
     single_copy : list
         A list of keys that are containing the same information for all experimental repetitions
     remove_zeros : bool (default True)
-        A boolean that indicates if lines full of zeros should be removed from numpy array that are combined.
+        A boolean that indicates if lines full of zeros should be removed from _np array that are combined.
+    remove_nans : bool (default True)
+        A boolean that indicates if lines full of nans should be removed from _np array that are combined.
     
     Returns
     --------
     D : dict
-        A dictionnary ready for use with numpy.save/savez/savez_compress 
+        A dictionnary ready for use with _np.save/savez/savez_compress 
     n_measures : int
         The number of repetitions of the experimen (summed over all repetitions)
         
-    """ 
-    single_copy += ['_conditions','_meta_info','_options','SBB_version'] # can this be moved to a default argument ?
+    """
     
     l_data =list()
     n_measure = 0
     for s in list_npz :
-        data = numpy.load(s,allow_pickle=True)
+        data = _np.load(s,**np_load_kw)
         data = dict(data)
-        n,Vdc,Vac = data['_conditions']
+        n,_,_ = data['_conditions']
         n_measure += n
         l_data.append(data)
 
@@ -104,15 +98,17 @@ def combine_repetitions(list_npz,single_copy,remove_zeros=True):
         if k in single_copy :
             D[k] = l_data[0][k]
         else :
-            tmp = list()
-            for data in l_data:
-                tmp.append(data[k])
             if l_data[0][k].dtype == object : # All non np.array data
-                D[k] = numpy.concatenate([tmp], axis=0)
-            else : # All np.array data
+                tmp = [ [data[k],] for data in l_data ]
+            elif l_data[0][k].ndim == 1 : # All 1D np.array data
+                tmp = [ data[k][None,...] for data in l_data ]
+            else :
+                tmp = [ data[k] for data in l_data ]
                 if remove_zeros :
-                    tmp = [remove_zeros_subarrays(t) for t in tmp ] # removes empty experiemental repetitions
-                D[k] = numpy.concatenate(tmp, axis=0)
+                    tmp = [remove_zeros_subarrays(t) for t in tmp ] # removes empty/zeros experiemental repetitions
+                if remove_nans :
+                    tmp = [remove_nan_subarrays(t) for t in tmp ]   # removes empty/nans experiemental repetitions
+            D[k] = _np.concatenate(tmp, axis=0)
     return D , n_measure
 
 ####################
@@ -120,9 +116,9 @@ def combine_repetitions(list_npz,single_copy,remove_zeros=True):
 ####################
 class timer(object):
     def __init__(self,size=1):
-        self.timer = numpy.zeros((2,size))
+        self.timer = _np.zeros((2,size))
     def watch(self):
-        return time.time()  
+        return _time.time()  
     def tic(self,index=0):
         self.timer[0,index] = self.watch()
     def toc(self,index=0):
@@ -148,8 +144,8 @@ class logger(object):
     {
         'loop_sizes': (1,),
         'open'      : 'Lauching experiment' ,
-        'close'     : 'Experience over : \n \t Real time {:04.2F} [s]' ,
-        'loop'      : 'Progess {:03}/{:03d} \t last_loop time: {:04.2F} [s]' ,
+        'close'     : 'Experience over : \n \t Real _time {:04.2F} [s]' ,
+        'loop'      : 'Progess {:03}/{:03d} \t last_loop _time: {:04.2F} [s]' ,
         'conditions': ('{: .1f}',) ,
         'events'    : {'event':'{: .1f}'},
         'indent'    : 0,
@@ -193,7 +189,7 @@ class logger(object):
         self._loop       = timer(len(self._loop_sizes))
         self._loop.tic()
         self._loop.toc()
-        ## Event(s) time
+        ## Event(s) _time
         self._events_len  = len(self._events_dict)
         self._events      = timer(self._events_len)
         for i in range(self._events_len):
@@ -260,9 +256,9 @@ class logger(object):
         print(self.log_txt)
     def save(self,path=None,filename='log',extension='.txt',time_stamp=False,prefix=''): 
         filename   += prefix
-        time_stamp = '_' + time.strftime('%y%m%d-%H%M%S') if time_stamp else ''
-        path_save  = path if path else os.getcwd()
-        f          = open(path_save+os.sep+filename+time_stamp+extension,"w")
+        time_stamp = '_' + _time.strftime('%y%m%d-%H%M%S') if time_stamp else ''
+        path_save  = path if path else _os.getcwd()
+        f          = open(path_save+_os.sep+filename+time_stamp+extension,"w")
         n          = f.write(self.log_txt)
         f.close()
 
@@ -332,7 +328,7 @@ class Info(object):
         Contains all the info about a given experiement
             - Sweeping conditions are contained in a tuple of 1D array. 
                 We assume that the experiement will sweep over the outerproduct of those array, though that behavior might be modified by the user in the experiment class.
-            - n_measures represents the number of time the conditions are repeated in the experiement
+            - n_measures represents the number of _time the conditions are repeated in the experiement
             - Meta_info is a dictionnary contaning meta information about the experiement (anything really)
                 A repetition keys is added to meta_info in case the experiment is repeated by the user (see: Experiment class)
         
@@ -382,7 +378,7 @@ class Accretion(object):
             - __doc__
         Bugs :
         Knowed issues :
-            Using numpy savez to save data makes it such that allow_pickle option must be used.
+            Using _np savez to save data makes it such that allow_pickle option must be used.
             Dictionnary therefore must be loaded in a particular way and list and tuples are converted
             to np_array.
     """
@@ -412,11 +408,11 @@ class Accretion(object):
     # Save/load #
     #############
     def save_data(self,path_save,prefix='acc_'):    
-        time_stamp                  = time.strftime('%y%m%d-%H%M%S') # File name will correspond to when the experiment ended
+        time_stamp                  = _time.strftime('%y%m%d-%H%M%S') # File name will correspond to when the experiment ended
         filename                    = prefix+'{}.npz'.format(time_stamp)
         to_save                     = self._data
         to_save['_versions_saved']  = __SBB_version__
-        numpy.savez_compressed(os.path.join(path_save,filename),**to_save)
+        _np.savez_compressed(_os.path.join(path_save,filename),**to_save)
         print("Data saved \n \t folder : {} \n \t {}".format(path_save,filename) )
     def _load_data_dict(self,data_dict):
         dict_to_attr(self,data_dict)
@@ -427,7 +423,7 @@ class Accretion(object):
             To load data create an experiment object using
             experiment = class_name().load_data(folder,filename)
         """
-        data                    = numpy.load(folder+'\\'+filename,allow_pickle=True)
+        data                    = _np.load(folder+'\\'+filename,allow_pickle=True)
         data                    = dict(data)
         self._load_data_dict(data_dict)
         return self
@@ -448,7 +444,7 @@ class Analysis(Info):
             - Change update analysis to update
         Bugs :
         Knowed issues :
-            Using numpy savez to save data makes it such that allow_pickle option must be used.
+            Using _np savez to save data makes it such that allow_pickle option must be used.
             Dictionnary therefore must be loaded in a particular way and list and tuples are converted
             to np_array.
     """
@@ -480,7 +476,7 @@ class Analysis(Info):
             If these moments are not centered then the definition is good for none centered moment
             Idem for centered moment
         """
-        return numpy.sqrt(numpy.abs(mu2k-muk**2)/float(n))
+        return _np.sqrt(_np.abs(mu2k-muk**2)/float(n))
     #############
     # Utilities #
     #############
@@ -506,7 +502,7 @@ class Analysis(Info):
     # Save/load #
     #############
     def save_data(self,path_save,prefix='anal_',ignore=False,format='compressed',**kwargs):    
-        time_stamp                  = time.strftime('%y%m%d-%H%M%S') # File name will correspond to when the experiment ended
+        time_stamp                  = _time.strftime('%y%m%d-%H%M%S') # File name will correspond to when the experiment ended
         to_save                     = self._data
         to_save['SBB_version']      = __SBB_version__
         to_save['_options']         = self._options
@@ -516,7 +512,7 @@ class Analysis(Info):
             extension = '.npz'
             extension += '.ignore' if ignore else ''
             filename = prefix+'{}'.format(time_stamp) + extension
-            numpy.savez_compressed(os.path.join(path_save,filename),**to_save)
+            _np.savez_compressed(_os.path.join(path_save,filename),**to_save)
             print("Data saved \n \t folder : {} \n \t {}".format(path_save,filename))
         elif ((format=='npy') or (format=='save') or (format=='uncompressed') or (format=='.npy')) :
             # allows memory mapping (more efficient for huge arrays)
@@ -524,13 +520,13 @@ class Analysis(Info):
             extension += '.ignore' if ignore else ''
             for key in to_save:
                 filename = key+'_{}'.format(time_stamp) + extension
-                numpy.save(os.path.join(path_save,filename),to_save[key],allow_pickle=True,fix_imports=True)
+                _np.save(_os.path.join(path_save,filename),to_save[key],allow_pickle=True,fix_imports=True)
                 print("Data saved \n \t folder : {} \n \t {}".format(path_save,filename))
         else : # format=='zip'
             extension = '.npz'
             extension += '.ignore' if ignore else ''
             filename = prefix+'{}'.format(time_stamp) + extension
-            numpy.savez(os.path.join(path_save,filename),**to_save)
+            _np.savez(_os.path.join(path_save,filename),**to_save)
             print("Data saved \n \t folder : {} \n \t {}".format(path_save,filename))
     def _load_data_dict(self,data_dict):
         dict_to_attr(self,data_dict)
@@ -549,19 +545,19 @@ class Analysis(Info):
             To load data create an experiment object using
             experiment = class_name().load_data(folder,filename)
         """
-        data                    = numpy.load(folder+'\\'+filename,allow_pickle=True)
+        data                    = _np.load(folder+'\\'+filename,allow_pickle=True)
         data                    = dict(data)
         try :
             conditions          = data.pop('_conditions')
         except KeyError as er:
             raise LoadingWarning('Missing key '+er.args[0]+' in loaded data.')
         try :
-            meta_info           = data.pop('_meta_info')[()]        # to load a dict saved by numpy.savez
+            meta_info           = data.pop('_meta_info')[()]        # to load a dict saved by _np.savez
         except KeyError as er :
             LoadingWarning.warn('Missing key '+er.args[0]+' in loaded data.')
             meta_info = None
         try :
-            options             = data.pop('_options')[()]          # to load a dict saved by numpy.savez
+            options             = data.pop('_options')[()]          # to load a dict saved by _np.savez
         except KeyError as er :
             LoadingWarning.warn('Missing key '+er.args[0]+' in loaded data.')
             options = None
@@ -710,9 +706,9 @@ class Experiment(Analysis):
     def _set_options(self,options):
         super(Experiment,self)._set_options(options)
         self._data_from_experiment  = not(options['loading_data']) if options.has_key('loading_data') else True
-        self._save_path             = options.get('save_path',os.getcwd())
+        self._save_path             = options.get('save_path',_os.getcwd())
         self._n_mod                 = options.get('n_mod',1)
-        self._save_log              = options.get('save log',True)
+        self._save_log              = options.get('save_log',True)
         self._debug                 = options.get('debug')     
     def _SET_devices(self,devices):
         if devices == None or devices == () or self._data_from_experiment == False :
@@ -742,7 +738,7 @@ class Experiment(Analysis):
     def measure(self,n_repetitions=None,save_path=None,save_prefix='exp_',ignore_flag=False,save_format='compressed',save_log=True,log_inherits_prefix=False,no_analysis=False,no_save=False,**kwargs):
         """
         n_mod       is the number of repetition before the reduction and analysis are run and data is saved
-        n_repetitions (internal variable _n_div = n_measures//n_mod) is the number of time the n_mod experiements are repeated
+        n_repetitions (internal variable _n_div = n_measures//n_mod) is the number of _time the n_mod experiements are repeated
         
         kwargs definitions
         ------------------
@@ -756,18 +752,14 @@ class Experiment(Analysis):
         """
         Reps        = n_repetitions if n_repetitions    else self._n_div
         save_path   = save_path     if save_path        else self._save_path
-        for  rep in range(Reps):
+        for rep in range(Reps):
             self.reset_objects()                # this is done here so that ojbects are available for auscultation
             self._meta_info['repetitions'] += 1
             self._measurement_loop()
-            if no_analysis:
-                pass
-            else :
+            if not(no_analysis):
                 self.update_analysis(**kwargs)
-            if no_save :
-                pass
-            else:               
-                self.save_data(path_save=save_path,prefix=save_prefix,ignore=ignore_flag,format=save_format,**kwargs)
+            if not(no_save) :
+                self.save_data(path_save=save_path,prefix=save_prefix,ignore=ignore_flag,format=save_format,**kwargs)      
         if self._save_log :
             log_prefix = save_prefix if log_inherits_prefix else ''
             self._log.save(path=save_path,filename='log',time_stamp=True,prefix=log_prefix)
@@ -786,7 +778,7 @@ class Experiment(Analysis):
         index_vec = ()
         for a in args :
             index_vec += ( range(len(a)) , )
-        return itertools.product(*index_vec) , itertools.product(*args)
+        return _itertools.product(*index_vec) , _itertools.product(*args)
     def _set_all_devices(self,conditions):
         """
             Should always be implemented
@@ -876,7 +868,7 @@ class Experiment(Analysis):
             To load data create an experiment object using
             experiment = class_name().load_data(folder,filename)
         """
-        data                    = numpy.load(folder+'\\'+filename,allow_pickle=True)
+        data                    = _np.load(folder+'\\'+filename,allow_pickle=True)
         data                    = dict(data)
         try :
             conditions          = data.pop('_conditions')
@@ -884,12 +876,12 @@ class Experiment(Analysis):
             raise LoadingWarning('Missing key '+er.args[0]+' in loaded data.')
         devices                 = None
         try :
-            meta_info           = data.pop('_meta_info')[()]        # to load a dict saved by numpy.savez
+            meta_info           = data.pop('_meta_info')[()]        # to load a dict saved by _np.savez
         except KeyError as er :
             LoadingWarning.warn('Missing key '+er.args[0]+' in loaded data.')
             meta_info = None
         try :
-            options             = data.pop('_options')[()]          # to load a dict saved by numpy.savez
+            options             = data.pop('_options')[()]          # to load a dict saved by _np.savez
         except KeyError as er :
             LoadingWarning.warn('Missing key '+er.args[0]+' in loaded data.')
             options = None
@@ -953,7 +945,7 @@ class Cross_Patern_Lagging_computation(Lagging_computation):
     """
     
     def _build_attributes(self):
-        self._ref_idxs = self._meta_info['ref_idxs'] if self._meta_info.has_key('ref_idxs') else numpy.zeros((len(self._conditions_core_loop_raw),),dtype=int)
+        self._ref_idxs = self._meta_info['ref_idxs'] if self._meta_info.has_key('ref_idxs') else _np.zeros((len(self._conditions_core_loop_raw),),dtype=int)
     
     class cross_enumerate(object):
         """
@@ -975,7 +967,7 @@ class Cross_Patern_Lagging_computation(Lagging_computation):
                     (2,4)
                     (2,5)
                     (2,6)
-            by default the ref_idxs numpy.zeros( len(args) )
+            by default the ref_idxs _np.zeros( len(args) )
         """
         def __init__(self,*args,**kwargs):
             self.cndtns          = args
@@ -983,7 +975,7 @@ class Cross_Patern_Lagging_computation(Lagging_computation):
                 self.dim             = len(args)
             except :
                 raise Exception("Bad initialization")
-            self.ref_idxs = numpy.r_[kwargs['ref_idxs']].astype(int) if kwargs.has_key('ref_idxs') else numpy.zeros((self.dim,),dtype=int)
+            self.ref_idxs = _np.r_[kwargs['ref_idxs']].astype(int) if kwargs.has_key('ref_idxs') else _np.zeros((self.dim,),dtype=int)
             try :
                 if self.ref_idxs.shape != (self.dim,):
                     raise Exception

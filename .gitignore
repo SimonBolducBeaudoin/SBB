@@ -36,9 +36,14 @@
 *.pyd
 *.pyc
 *.npz
+!*dont_ignore.npz
 *.pdf
 *.png
 *.a
+
+# Jupyter notebook
+*.ipynb
+*.ipynb_checkpoints
 
 # Other
 *.dat
@@ -47,5 +52,6 @@
 build/
 dist/
 *.egg-info/
-
 *.eggs/
+
+SBB/AutoCorr/acorrs_otf.py

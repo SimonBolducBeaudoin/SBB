@@ -15,7 +15,7 @@ from decimal import Decimal
 #from acorrs_wrapper import set_mpreal_precision
 
 # For compatibility with my own installation
-import SBB.AutoCorr.acorrs_wrapper
+import SBB.AutoCorr.acorrs_wrapper as acorrs_wrapper
 from SBB.AutoCorr.acorrs_wrapper import set_mpreal_precision
 
 # Applies to instances created afterwards
