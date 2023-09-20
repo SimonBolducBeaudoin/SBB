@@ -10,3 +10,6 @@
 [submodule "SBB/AutoCorr"]
 	path = SBB/AutoCorr
 	url = https://github.com/SimonBolducBeaudoin/AutoCorr.git
+[submodule "SBB/Histograms"]
+	path = SBB/Histograms
+	url = https://github.com/SimonBolducBeaudoin/Histograms.git
