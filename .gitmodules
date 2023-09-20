@@ -1,9 +1,6 @@
 [submodule "CMakeConfigs"]
 	path = CMakeConfigs
 	url = https://github.com/SimonBolducBeaudoin/CMakeConfigs.git
-[submodule "SBB/Math_extras"]
-	path = SBB/Math_extras
-	url = https://github.com/SimonBolducBeaudoin/Math_extra.git
 [submodule "SBB/Omp_extra"]
 	path = SBB/Omp_extra
 	url = https://github.com/SimonBolducBeaudoin/Omp_extra.git
