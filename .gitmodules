@@ -1,3 +1,3 @@
-[submodule "AFAP"]
-	path = AFAP
-	url = https://github.com/SimonBolducBeaudoin/AFAP.git
+[submodule "CMakeConfigs"]
+	path = CMakeConfigs
+	url = https://github.com/SimonBolducBeaudoin/CMakeConfigs.git
