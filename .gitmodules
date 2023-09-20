@@ -19,3 +19,6 @@
 [submodule "SBB/Time_quadratures"]
 	path = SBB/Time_quadratures
 	url = https://github.com/SimonBolducBeaudoin/Time_quadratures.git
+[submodule "SBB/Multi_array"]
+	path = SBB/Multi_array
+	url = https://github.com/SimonBolducBeaudoin/Multi_array.git
