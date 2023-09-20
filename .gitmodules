@@ -13,3 +13,6 @@
 [submodule "SBB/Histograms"]
 	path = SBB/Histograms
 	url = https://github.com/SimonBolducBeaudoin/Histograms.git
+[submodule "SBB/FFTW_extra"]
+	path = SBB/FFTW_extra
+	url = https://github.com/SimonBolducBeaudoin/FFTW_extra.git
