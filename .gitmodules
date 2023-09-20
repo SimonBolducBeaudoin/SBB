@@ -16,3 +16,6 @@
 [submodule "SBB/FFTW_extra"]
 	path = SBB/FFTW_extra
 	url = https://github.com/SimonBolducBeaudoin/FFTW_extra.git
+[submodule "SBB/Time_quadratures"]
+	path = SBB/Time_quadratures
+	url = https://github.com/SimonBolducBeaudoin/Time_domain.git
