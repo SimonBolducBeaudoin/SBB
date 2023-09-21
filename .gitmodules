@@ -1,3 +1,24 @@
-[submodule "AFAP"]
-	path = AFAP
-	url = https://github.com/SimonBolducBeaudoin/AFAP.git
+[submodule "CMakeConfigs"]
+	path = CMakeConfigs
+	url = https://github.com/SimonBolducBeaudoin/CMakeConfigs.git
+[submodule "SBB/Omp_extra"]
+	path = SBB/Omp_extra
+	url = https://github.com/SimonBolducBeaudoin/Omp_extra.git
+[submodule "SBB/AutoCorr"]
+	path = SBB/AutoCorr
+	url = https://github.com/SimonBolducBeaudoin/AutoCorr.git
+[submodule "SBB/Histograms"]
+	path = SBB/Histograms
+	url = https://github.com/SimonBolducBeaudoin/Histograms.git
+[submodule "SBB/FFTW_extra"]
+	path = SBB/FFTW_extra
+	url = https://github.com/SimonBolducBeaudoin/FFTW_extra.git
+[submodule "SBB/Math_extra"]
+	path = SBB/Math_extra
+	url = https://github.com/SimonBolducBeaudoin/Math_extra.git
+[submodule "SBB/Time_quadratures"]
+	path = SBB/Time_quadratures
+	url = https://github.com/SimonBolducBeaudoin/Time_quadratures.git
+[submodule "SBB/Multi_array"]
+	path = SBB/Multi_array
+	url = https://github.com/SimonBolducBeaudoin/Multi_array.git
