@@ -6,5 +6,6 @@ add_subdirectory(Math_extra)
 add_subdirectory(Omp_extra)
 add_subdirectory(AutoCorr)
 add_subdirectory(Histograms)
+add_subdirectory(Time_quadratures)
 
 
