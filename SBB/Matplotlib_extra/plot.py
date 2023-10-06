@@ -2,6 +2,7 @@
 #! -*- coding: utf-8 -*-
 
 import numpy as _np
+from matplotlib import cm as _cm
 
 def nanplot(ax,x,y,**kwargs):
     not_nan = ~(_np.isnan(y)) 
@@ -117,3 +118,18 @@ def scope_update(ax,x,y,line_idx=0,option=None) :
             ax.lines[1].set_data(x,y)
     else : # overwirte data
         ax.lines[line_idx].set_data(x,y)    
+        
+def plot_complex_with_phase(x, z):
+    amplitude = _np.abs(z)
+    phase = _np.angle(z)
+    
+    fig, ax = subplots(1,1)
+    
+    ax.plot(x, amplitude,color='k')
+
+    for i in range(len(z) - 1):
+        average_phase = (phase[i] + phase[i + 1]) / 2.0
+        polygon = plt.Polygon([[x[i], 0], [x[i], amplitude[i]], [x[i + 1], amplitude[i + 1]], [x[i + 1], 0]],
+                              closed=True, edgecolor='none', facecolor=_cm.cool(average_phase))
+        ax.add_patch(polygon)
+    return ax
