@@ -51,10 +51,13 @@ def _Std_C4(R,r_end=_np.inf):
     return r0[0]*r4[0]/r2[0]**2-3.
 Std_C4 = _np.vectorize(_Std_C4,excluded=['r_end'])
     
-def _find_R(StdC4,maxiter=100, xtol= 1.e-3, rtol=1.e-3,r_end=_np.inf):
+def _find_R(StdC4,maxiter=100, xtol= 1.e-3, rtol=1.e-3,r_end=_np.inf,force_physical_C4=True):
     """
     Tries to find R given StdC4 using Brent’s method (root finding method).
     """
+    if force_physical_C4 :
+        if StdC4< 0  :
+            return 1.0
     def residual(R,y,r_end=r_end):
         return _Std_C4(R,r_end) - y 
     try :
