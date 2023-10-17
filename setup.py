@@ -7,7 +7,7 @@ with open("README.md","r") as fh:
 
 setuptools.setup(
     name="SBB",
-    version="0.0.19",
+    version="1.0.0",
     author="Simon Bolduc Beaudoin",
     author_email="Simon.Bolduc.Beaudoin@usherbrooke.ca",
     long_description=long_description,
