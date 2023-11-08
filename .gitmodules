@@ -22,3 +22,6 @@
 [submodule "SBB/Multi_array"]
 	path = SBB/Multi_array
 	url = https://github.com/SimonBolducBeaudoin/Multi_array.git
+[submodule "SBB/FFT/FFT_CUDA"]
+	path = SBB/FFT/FFT_CUDA
+	url = https://github.com/SimonBolducBeaudoin/FFT_CUDA.git
