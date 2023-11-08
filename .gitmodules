@@ -22,3 +22,6 @@
 [submodule "SBB/FFT/FFT_CUDA"]
 	path = SBB/FFT/FFT_CUDA
 	url = https://github.com/SimonBolducBeaudoin/FFT_CUDA.git
+[submodule "SBB/FFT/FFTW_extra"]
+	path = SBB/FFT/FFTW_extra
+	url = https://github.com/SimonBolducBeaudoin/FFTW_extra.git
