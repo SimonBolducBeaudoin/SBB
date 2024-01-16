@@ -37,7 +37,32 @@ def trigger_style_2():
     matplotlib.rcParams['lines.markersize'] = 15
     matplotlib.rcParams['lines.markeredgewidth'] = 2.5
 
+def trigger_PRL(w,h):
+    matplotlib.rcParams['figure.figsize'] = [w,h]
+    matplotlib.rcParams['figure.dpi'] = 600 
+    matplotlib.rcParams['font.size'] = 15
+    matplotlib.rcParams['lines.linewidth'] = 3
+    matplotlib.rcParams['lines.markersize'] = 15
+    matplotlib.rcParams['lines.markeredgewidth'] = 2.5
+  
+def trigger_PRL_single_col():
+    ratio =1.62
+    width = 3+3./8
+    matplotlib.rcParams['figure.figsize'] = [width,width/ratio]
+    trigger_PRL(width,width/ratio)
     
+def trigger_PRL_1_5_col():
+    ratio =1.62
+    width = (3+3./8)*1.5
+    matplotlib.rcParams['figure.figsize'] = [width,width/ratio]
+    trigger_PRL(width,width/ratio)
+    
+def trigger_PRL_2_col():
+    ratio =1.62
+    width = (3+3./8)*2
+    matplotlib.rcParams['figure.figsize'] = [width,width/ratio]
+    trigger_PRL(width,width/ratio)
+ 
 def trigger_default_style():
     trigger_style_0()
     
@@ -46,6 +71,7 @@ def trigger_small_style():
     
 def trigger_beamer_style():
     trigger_style_2()
+
     
 if __name__ == "__main__" :
     trigger_my_default_style()
