@@ -206,7 +206,35 @@ def find_where_A_equal_B(A,B):
     Intended for 1D arrays only
     """
     return [i for a in  A for i,b in enumerate(B) if a == b]
-     
+  
+
+def add_axes_to_left(A, B_shape):
+    """
+    Adds axes to the left of array A until A and B have the same number of dimensions.
+
+    Parameters:
+    A (numpy.ndarray): The input array.
+    B_shape (tuple): The shape of array B.
+
+    Returns:
+    numpy.ndarray: The modified array A.
+    
+    Raises:
+    ValueError: If A has more dimensions than B.
+    """
+    dim_A = A.ndim
+    dim_B = len(B_shape)
+    
+    if dim_A > dim_B:
+        raise ValueError("Array A has more dimensions than array B.")
+    
+    num_axes_to_add = dim_B - dim_A
+    
+    for _ in range(num_axes_to_add):
+        A = np.expand_dims(A, axis=0)
+    
+    return A
+  
 def reshape_axis(Y, new_axis_shape,axis=-1):
     """
     Reshape a Numpy array along a specified axis by changing its size and structure.
