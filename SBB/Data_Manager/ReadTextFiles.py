@@ -12,7 +12,7 @@ def extract_numbers_from_files(file_pattern, pattern=r'Computing : (\d+\.\d+) \[
     for file_path in _glob.glob(file_pattern):
         with open(file_path, 'r') as file:
             for line in file:
-                match = re.search(pattern, line)
+                match = _re.search(pattern, line)
                 if match:
                     numbers.append(float(match.group(1)))
     return _np.r_[numbers]
