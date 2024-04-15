@@ -199,10 +199,10 @@ class logger(object):
     def indent(self,n):
         self.logger_indent = n
     def _print(self,s):
-        ss =''
+        ss = ''
         for i in range(self.logger_indent) :
             ss += '\t'
-        self.log_txt += (s +'\n')   
+        self.log_txt += ss + s +'\n'   
         print(ss + s)
     def open(self):
         self._experiment.tic()
@@ -261,6 +261,9 @@ class logger(object):
         f          = open(path_save+_os.sep+filename+time_stamp+extension,"w")
         n          = f.write(self.log_txt)
         f.close()
+        
+    def reset(self):
+        self.log_txt = '' # stores all prints 
 
 class ExperimentErrors(Exception):
     """
@@ -760,11 +763,10 @@ class Experiment(Analysis):
                 self.update_analysis(**kwargs)
             if not(no_save) :
                 self.save_data(path_save=save_path,prefix=save_prefix,ignore=ignore_flag,format=save_format,**kwargs)      
-        if self._save_log :
-            log_prefix = save_prefix if log_inherits_prefix else ''
-            self._log.save(path=save_path,filename='log',time_stamp=True,prefix=log_prefix)
-        else :
-            pass
+            if self._save_log :
+                log_prefix = save_prefix if log_inherits_prefix else ''
+                self._log.save(path=save_path,filename='log',time_stamp=True,prefix=log_prefix)
+                self._log.reset()
     #############
     # Utilities #
     #############

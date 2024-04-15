@@ -6,6 +6,7 @@ from scipy.special import jv as _besselJ
 import scipy.constants as _C
 
 from SBB.Brrrr.Memoize import MemoizeMutable as _MemMut
+from SBB.Numpy_extra.numpy_extra import find_nearest_A_to_a
 
 from numba import njit,vectorize, float64 , int32, int64
 
@@ -328,57 +329,182 @@ def Sqz(p,omega,nu,Te,nuac,Omega, R,nBessel=21):
 # Photon experiments #
 ######################
 
-def C2_of_f(omega,nu,nuac=0.,Omega=0.,Te=0.050,R=50.0,nBessel=21):
-    if (nuac == 0.) or (Omega == 0.):
-        return (R/(_C.hbar*omega))*Sdc_of_f(omega,nu,Te,R) * 0.5
+
+def SII_of_f(freq,Idc,Iac=0.,F=0.,Te=0.050,R=50.0,nBessel=21):
+    """
+    Inputs 
+    freq : 1D-array [Hz]                    (last axis of the final array)
+    beta : ND-array or scalar [Hz^{-1/2}]   (last axis must be freq)
+    
+    Returns
+    SII  : auto-correlation [A**2/Hz]       
+    """
+    omega = 2*_np.pi*freq
+    Omega = 2*_np.pi*F
+    nu    = _C.e*Idc*R/_C.hbar
+    nuac  = _C.e*Iac*R/_C.hbar
+    
+    if ( ( type(Iac) != _np.ndarray) and ( Iac==0.0 ) ) or ( ( type(F) != _np.ndarray) and ( F==0.0 ) ) :
+        return Sdc_of_f(omega,nu,Te,R)
     else :
         z = nuac/Omega
         nBessel -= nBessel%2-1    # Ensure it's odd
         Ns = _np.arange(-nBessel//2+1,nBessel//2+1)
-        Sum = 0.
-        for n in Ns:
-            Sum +=  0.5*_besselJ(n,z)*_besselJ(n,z)*( Seq_of_f(nu+omega+n*Omega,Te,R) + Seq_of_f(nu-omega-n*Omega,Te,R) ) 
-        return (R/(_C.hbar*omega))*Sum.sum() * 0.5 # this is necessary 
+        sum_shape =  ( len(Ns), ) + _np.broadcast(Idc,Iac,freq,F).shape
+        Sum = _np.zeros( sum_shape  )
+        for i,n in enumerate(Ns):
+            Sum[i,...] +=  0.5*_besselJ(n,z)*_besselJ(n,z)*( Seq_of_f(nu+omega+n*Omega,Te,R) + Seq_of_f(nu-omega-n*Omega,Te,R) ) 
+        return Sum.sum(axis=0)  
         
-def dC2ac_th(omega,nu,nuac=0.,Omega=0.,Te=0.050,R=50.0,nBessel=21):
-    return C2_of_f(omega,nu,nuac,Omega,Te,R,nBessel) - C2_of_f(omega,nu,0.,Omega,Te,R,nBessel)
-
-def n_th(omega,nu,nuac=0.,Omega=1.e9,Te=0.050,R=50.0,nBessel=21):
-    return C2_of_f(omega,nu,nuac,Omega,Te,R,nBessel) - 0.5 
-
-def dnac_th(omega,nu,nuac=0.0,Omega=1e9,Te=0.050,R=50.0,nBessel=21):
-    return n_th(omega,nu,nuac,Omega,Te,R,nBessel) - n_th(omega,nu,0.,Omega,Te,R,nBessel)
-
-def C4_th(omega,nu,nuac,Omega,Te=0.050,R=50.0,nBessel=21):
-    if omega == Omega/2 : # dangerous
-        z = nuac/Omega
-        nBessel -= nBessel%2-1    # Ensure it's odd
-        Ns = _np.arange(-nBessel//2+1,nBessel//2+1)
-        Sum = 0.
-        for n in Ns:
-            Sum +=  0.5*_besselJ(n,z)*_besselJ(n+1,z)*( Seq_of_f(nu+omega+n*Omega,Te,R) - Seq_of_f(omega-n*Omega-nu,Te,R) ) 
-        return ((3./2.)*((R/(_C.hbar*omega))*Sum.sum())**2) * 0.25 # this is necessary 
-    else :
-        return 0.
-#C4_th = _MemMut(_np.vectorize(_C4_th))
-
-#def C4ac_th(omega,nu,nuac,Omega,Te=Te,R=R,nBessel=21):
-#    return C4_th(omega,nu,nuac,Omega,Te,R,nBessel) - C4_th(omega,nu,0.,Omega,Te,R,nBessel)
-
-def dn2_th(omega,nu,nuac=None,Omega=1.e9,Te=0.050,R=50.0,nBessel=21):
+def _Spa_two_freq(omega,nu,nuac,Omega,Te,R,nBessel):
     """
-    dn2 = 2/3 C_4 + C_2^2 - 1/4
+    Voir : Forgues et al. Experimental violation of Bell-like Inequalities By Electronic Shot Noise
+    
+    f + f2 = F : f est la plus petite des deux fréquences tel que f + f2 = F 
+    <I(f1)I(f2)> = Sum_{n in {-inf,inf}} 0.5*alpha_n [Seq(f_n+) - Seq(f_n-)]
+    f_npm = f+ n F pm nudc
+    alpha_n = J_n( nuac/F ) J_{n+1}( nuac/F )
+    
+    nudc = eVac / h
+    nuac = eVac / h
+    
     """
-    if ( (nuac == None) or (nuac == 0.0) )   :
-        return C2_th(omega,nu,0.0,Omega,Te,R,nBessel)**2 - 0.25 # this is an attempt
+    
+    z = nuac/Omega
+    nBessel -= nBessel%2-1    # Ensure it's odd
+    Ns = _np.arange(-nBessel//2+1,nBessel//2+1)
+    Sum = 0.
+    for n in Ns:
+        alpha_n = _besselJ(n,z)*_besselJ(n+1,z)
+        omega_p =  omega+n*Omega+nu
+        omega_m =  omega+n*Omega-nu
+        Sum +=  0.5*alpha_n*( Seq_of_f(omega_p,Te,R) - Seq_of_f(omega_m,Te,R) ) 
+    return Sum.sum()
+Spa_two_freq = _np.vectorize(_Spa_two_freq)
+
+def SII_f1_f2(freq,Idc,Iac=0.,F=0.,Te=0.050,R=50.0,nBessel=21):
+    """
+    f + f2 = F : f est la plus petite des deux fréquences tel que f + f2 = F 
+    """
+    omega = 2*_np.pi*freq
+    Omega = 2*_np.pi*F
+    nu    = _C.e*Idc*R/_C.hbar
+    nuac  = _C.e*Iac*R/_C.hbar
+    return Spa_two_freq(omega,nu,nuac,Omega,Te,R,nBessel)
+    
+def C4_f1_f2(freq,beta,Idc,Iac=0.,F=0.,Te=0.050,R=50.0,nBessel=21):
+    _,F_idx = find_nearest_A_to_a(F,freq)
+    df = freq[1]-freq[0]
+    # normalised to 1/2 of int_+ df now will be 1.
+    B = _np.absolute(beta)
+    # Creating B(F-f)
+    B2 = _np.zeros(B.shape)
+    B2[...,:F_idx+1:] = B[...,F_idx::-1] # From F (or 12GHz) to 0 backward  
+    B2[...,F_idx+1:]  = B[...,:len(freq)-(F_idx+1):][...,::-1] # The part of the spectrum folded around 0.
+    
+    sii_f1f2 = SII_f1_f2(freq,Idc,Iac,F,Te,R,nBessel) # |<i(f)i(F-f)>| [A^2/Hz]
+    sii_f1f2[...,F_over2_idx] = 0.5 * sii_f1f2[...,F_over2_idx]
+    
+    vec1 = ((R/_C.h))*sii_f1f2/_np.sqrt(_np.abs(freq*(F-freq))) # has dimension of n2 but is not n2
+    # Managing division by 0.
+    w = _np.where( (vec1 == _np.inf) | (vec1 == -_np.inf)  ) 
+    vec1[w] = 0.0
+    
+    vec2 = _np.zeros(vec1.shape)
+    vec2[...,:F_idx+1:] = vec1[...,F_idx::-1] # From F (or 12GHz) to 0 backward  
+    vec2[...,F_idx+1:]  = vec1[...,:len(freq)-(F_idx+1):][...,::-1] # The part of the spectrum folded around 0.
+    
+    vec1 = B*B2*vec1
+    vec2 = B*B2*vec2
+    
+    #return (3./4.)*( 0.5*_np.nansum( vec1 ,axis=-1)**2 + _np.nansum( vec1**2 ,axis=-1) + _np.nansum( vec1*vec2 ,axis=-1) ) * df**2
+    return (3./4.)*( 0.5*_np.nansum( vec1 ,axis=-1)**2 ) * df**2
+    
+def C4_f1_f2_old(freq,beta,Idc,Iac=0.,F=0.,Te=0.050,R=50.0,nBessel=21):
+    """
+    On integre le correlateur <i(f1)i(f2)>
+    sur le domaine f1 + f2 = F en pondérant pour les beta correctements.
+    Il s'agit d'un domaine en X, il faut éviter de compter le centre du X deux fois (i.e. f = F/2).
+    
+    F has to be in freq, because I need to find its index and use it in the computation.
+    
+    freq  = [0.2,0.4,...,F,F+0.2,...] 
+    
+    """
+    _,F_idx = find_nearest_A_to_a(F,freq)
+    _,F_over2_idx = find_nearest_A_to_a(freq[F_idx]/2.,freq)
+    # normalised to 1/2 of int_+ df now will be 1.
+    B = _np.absolute(beta)**2
+    # Creating B(F-f)
+    B2 = _np.zeros(B.shape)
+    B2[...,:F_idx+1:] = B[...,F_idx::-1] # From F (or 12GHz) to 0 backward  
+    B2[...,F_idx+1:]  = B[...,:len(freq)-(F_idx+1):][...,::-1] # The part of the spectrum folded around 0.
+    
+    #BB = B*_np.roll( B[...,::-1],F_idx+1,axis=-1 )
+    c4_f1f2 = SII_f1_f2(freq,Idc,Iac,F,Te,R,nBessel)**2 # |<i(f)i(F-f)>|^2 [A^4/Hz^2]
+    
+    # The f = F/2 term is counted in double in the calculation for SII_f1_f2, 
+    # and since we squared it we need to divide this frequency by 4 
+    # to get the right amplitude
+                               # 0.25 ??? ou 0.0
+    c4_f1f2[...,F_over2_idx] = 0.25 * c4_f1f2[...,F_over2_idx]
+    
+    n2_tilde_f1f2 = ((R/_C.h)**2)*c4_f1f2/_np.abs(freq*(F-freq)) # has dimension of n2 but is not n2
+    
+    df = freq[1]-freq[0]
+    # Managing division by 0.
+    w = _np.where( (n2_tilde_f1f2 == _np.inf) | (n2_tilde_f1f2 == -_np.inf)  ) 
+    n2_tilde_f1f2[w] = 0.0
+    
+    # It is not clear to me where where it comes from but there is a remaning 
+    # multiplying constant between this theory and the data. 
+    # It is probably due to some folding spectrum issue.
+    # Nevertheless I algomerated this error in K which teh details
+    # can be figured out latter.
+    
+    K = 8
+ 
+    return K*(3./2.)*_np.nansum( B*B2* n2_tilde_f1f2 ,axis=-1)* df**2
+    
+        
+def n_beta(freq,beta,Idc,Iac=0.,F=0.,Te=0.050,R=50.0,nBessel=21):
+    """
+    Ergo. Hyp. ==> <n> = < \bar{n(t)} > ==>
+    <n> = int_+ |beta(f)|^2 ( SII(f)/Zhf - 1/2 ) df
+    
+    Inputs 
+    freq : 1D-array [Hz] (last axis of the final array)
+    beta : ND-array or scalar [Hz^{-1/2}] (last axis must be freq)
+    SII  : auto-correlation [A**2/Hz] (last axis must be freq)
+    
+    Returns
+    n : array with shape = beta.shape[:-1]
+    """
+    
+    SII = SII_of_f(freq,Idc,Iac,F,Te,R,nBessel)
+    
+    df = freq[1]-freq[0]
+    
+    # Sprectum folding factor, 0.5, included (i.e. SII theory are usually integrated over the full spectrum).
+    n_of_f = 0.5*R*SII/(_C.h * freq ) - 1./2. 
+    # Managing division by 0.
+    w = _np.where( (n_of_f == _np.inf) | (n_of_f == -_np.inf)  ) 
+    n_of_f[w] = 0.0
+ 
+    B = 2*_np.absolute(beta)**2 # normalise to 1/2 of int_+ df
+    return _np.nansum( B * n_of_f ,axis=-1)* df
+    
+def dn2_beta(freq,beta,Idc,Iac=0.,F=0.,Te=0.050,R=50.0,nBessel=21):
+    """
+    
+    """
+    n = n_beta(freq,beta,Idc,Iac=0.,F=0.,Te=0.050,R=50.0,nBessel=21)
+    if ( ( type(Iac) != _np.ndarray) and ( Iac==0.0 ) ) or ( ( type(F) != _np.ndarray) and ( F==0.0 ) ) :
+        return n*(n+1.0)
     else :
-        return 2./3. * C4_th(omega,nu,nuac,Omega,Te,R,nBessel) + C2_th(omega,nu,nuac,Omega,Te,R,nBessel)**2 - 0.25
+        # Sprectum folding factor, 0.5, included (i.e. SII theory are usually integrated over the full spectrum).
+        c4 = 0.25*C4_f1_f2(freq,Idc,Iac,F,Te,R,nBessel)
+    
+    
 
-def ddn2ac_th(omega,nu,nuac=0.,Omega=1.e9,Te=0.050,R=50.0,nBessel=21):
-    return 2./3. * C4_th(omega,nu,nuac,Omega,Te,R,nBessel) + nac_th(omega,nu,nuac,Omega,Te,R,nBessel)*(nac_th(omega,nu,nuac,Omega,Te,R,nBessel)+1)
-
-def Fano_th(omega,nu,nuac,Omega,Te=0.050,R=50.0,nBessel=21):
-    return dn2_th(omega,nu,nuac,Omega,Te,R,nBessel)/n_th(omega,nu,nuac,Omega,Te,R,nBessel)
-
-def Fanoac_th(omega,nu,nuac,Omega,Te=0.050,R=50.0,nBessel=21):
-    return dn2ac_th(omega,nu,nuac,Omega,Te,R,nBessel)/nac_th(omega,nu,nuac,Omega,Te,R,nBessel)
+    
