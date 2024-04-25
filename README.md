@@ -54,5 +54,5 @@ They are place in ../Cpp a repository parallel to SBB/
     - rm -R -f build/
     
 #  Cleaning the compilation's output (equivalent to make clean)
-    - cmake --buidl buidl/ --target clean
+    - cmake --build build/ --target clean
  
