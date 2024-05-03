@@ -117,17 +117,17 @@ function squash_commits() {
     special_print "Squash"	
 	for path in "${paths[@]}"; do
 		latest_commit_hash=$(git -C "$path" rev-parse HEAD)
-		after_time_hash		=$(git rev-list -n 1 --after="$time_window" HEAD)
-		before_time_hash	=$(git rev-list -n 1 --before="$time_window" HEAD)	
+		after_time_hash=$(git -C "$path" rev-list --after="$time_window" --reverse HEAD | head -n 1)
+		before_time_hash=$(git -C "$path" rev-list -n 1 --before="$time_window" HEAD)	
 		if [ "$after_time_hash" != "$latest_commit_hash" ]; then
 			echo "$path"
 			git -C "$path" reset --soft "$before_time_hash"
 			git -C "$path" commit -m "$message"
 		fi
 	done
-	latest_commit_hash	=$(git rev-parse HEAD)
-	after_time_hash		=$(git rev-list -n 1 --after="$time_window" HEAD)
-	before_time_hash	=$(git rev-list -n 1 --before="$time_window" HEAD)
+	latest_commit_hash=$(git rev-parse HEAD)
+	after_time_hash=$(git rev-list --after="$time_window" --reverse HEAD | head -n 1)
+	before_time_hash=$(git rev-list -n 1 --before="$time_window" HEAD)
 	if [ "$after_time_hash" != "$latest_commit_hash" ]; then
 		echo "Parent directory"
 		git reset --soft "$before_time_hash"
