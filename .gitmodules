@@ -1,7 +1,7 @@
 [submodule "CMakeConfigs"]
 	path = CMakeConfigs
 	url = https://github.com/SimonBolducBeaudoin/CMakeConfigs.git
-[submodule "SBB/Omp_extra"]
+[submodule "Omp_extra"]
 	path = SBB/Omp_extra
 	url = https://github.com/SimonBolducBeaudoin/Omp_extra.git
 [submodule "SBB/AutoCorr"]
