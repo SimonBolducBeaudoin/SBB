@@ -25,3 +25,6 @@
 [submodule "SBB/FFT/FFTW_extra"]
 	path = SBB/FFT/FFTW_extra
 	url = https://github.com/SimonBolducBeaudoin/FFTW_extra.git
+[submodule "GitMaster"]
+	path = GitMaster
+	url = https://github.com/SimonBolducBeaudoin/GitMaster.git
