@@ -379,7 +379,7 @@ def _Spa_two_freq(omega,nu,nuac,Omega,Te,R,nBessel):
         omega_p =  omega+n*Omega+nu
         omega_m =  omega+n*Omega-nu
         Sum +=  0.5*alpha_n*( Seq_of_f(omega_p,Te,R) - Seq_of_f(omega_m,Te,R) ) 
-    return Sum.sum()
+    return Sum#.sum() # .sum not necessary
 Spa_two_freq = _np.vectorize(_Spa_two_freq)
 
 def SII_f1_f2(freq,Idc,Iac=0.,F=0.,Te=0.050,R=50.0,nBessel=21):
@@ -391,34 +391,44 @@ def SII_f1_f2(freq,Idc,Iac=0.,F=0.,Te=0.050,R=50.0,nBessel=21):
     nu    = _C.e*Idc*R/_C.hbar
     nuac  = _C.e*Iac*R/_C.hbar
     return Spa_two_freq(omega,nu,nuac,Omega,Te,R,nBessel)
+       
+#import pdb
+       
+def C4_f1_f2_new(freq,beta,Idc,Iac=0.,F=0.,Te=0.050,R=50.0,nBessel=21,phase=None):
+    """
+    On integre le correlateur <i(f1)i(f2)>
+    sur le domaine f1 + f2 = F en pondérant pour les beta correctements.
+    Il s'agit d'un domaine en X, il faut éviter de compter le centre du X deux fois (i.e. f = F/2).
     
-def C4_f1_f2(freq,beta,Idc,Iac=0.,F=0.,Te=0.050,R=50.0,nBessel=21):
+    F has to be in freq, because I need to find its index and use it in the computation.
+    
+    freq  = [0.2,0.4,...,F,F+0.2,...] 
+    
+    """
     _,F_idx = find_nearest_A_to_a(F,freq)
-    df = freq[1]-freq[0]
-    # normalised to 1/2 of int_+ df now will be 1.
-    B = _np.absolute(beta)
+    _,F_over2_idx = find_nearest_A_to_a(freq[F_idx]/2.,freq)
+    # normalised to 1/2 of int_+ beta**2 df .
+    B = beta
     # Creating B(F-f)
-    B2 = _np.zeros(B.shape)
+    B2 = _np.zeros(B.shape,dtype=B.dtype)
     B2[...,:F_idx+1:] = B[...,F_idx::-1] # From F (or 12GHz) to 0 backward  
     B2[...,F_idx+1:]  = B[...,:len(freq)-(F_idx+1):][...,::-1] # The part of the spectrum folded around 0.
     
-    sii_f1f2 = SII_f1_f2(freq,Idc,Iac,F,Te,R,nBessel) # |<i(f)i(F-f)>| [A^2/Hz]
-    sii_f1f2[...,F_over2_idx] = 0.5 * sii_f1f2[...,F_over2_idx]
+    sii_f1_f2 = SII_f1_f2(freq,Idc,Iac,F,Te,R,nBessel) # <i(f)i(F-f)> [A^2/Hz]
     
-    vec1 = ((R/_C.h))*sii_f1f2/_np.sqrt(_np.abs(freq*(F-freq))) # has dimension of n2 but is not n2
+    #pdb.set_trace()
+    if phase is None :
+        phase = 1.0 
+    n_f1f2 = phase*B*B2*(R/_C.h)*sii_f1_f2/_np.sqrt(_np.abs(freq*(F-freq))) # has dimension of n2 but is not n2
+    
+    df = freq[1]-freq[0]
     # Managing division by 0.
-    w = _np.where( (vec1 == _np.inf) | (vec1 == -_np.inf)  ) 
-    vec1[w] = 0.0
+    w = _np.where( (_np.abs(n_f1f2) == _np.inf) | (_np.abs(n_f1f2) == -_np.inf)  ) 
+    n_f1f2[w] = 0.0
     
-    vec2 = _np.zeros(vec1.shape)
-    vec2[...,:F_idx+1:] = vec1[...,F_idx::-1] # From F (or 12GHz) to 0 backward  
-    vec2[...,F_idx+1:]  = vec1[...,:len(freq)-(F_idx+1):][...,::-1] # The part of the spectrum folded around 0.
-    
-    vec1 = B*B2*vec1
-    vec2 = B*B2*vec2
-    
-    #return (3./4.)*( 0.5*_np.nansum( vec1 ,axis=-1)**2 + _np.nansum( vec1**2 ,axis=-1) + _np.nansum( vec1*vec2 ,axis=-1) ) * df**2
-    return (3./4.)*( 0.5*_np.nansum( vec1 ,axis=-1)**2 ) * df**2
+    K = 1.0
+    #pdb.set_trace()
+    return K*(3./2.)*_np.abs(((_np.nansum(  n_f1f2 ,axis=-1)* df)))**2
     
 def C4_f1_f2_old(freq,beta,Idc,Iac=0.,F=0.,Te=0.050,R=50.0,nBessel=21):
     """
@@ -447,7 +457,7 @@ def C4_f1_f2_old(freq,beta,Idc,Iac=0.,F=0.,Te=0.050,R=50.0,nBessel=21):
     # and since we squared it we need to divide this frequency by 4 
     # to get the right amplitude
                                # 0.25 ??? ou 0.0
-    c4_f1f2[...,F_over2_idx] = 0.25 * c4_f1f2[...,F_over2_idx]
+    c4_f1f2[...,F_over2_idx] = 0.0  * c4_f1f2[...,F_over2_idx]
     
     n2_tilde_f1f2 = ((R/_C.h)**2)*c4_f1f2/_np.abs(freq*(F-freq)) # has dimension of n2 but is not n2
     
