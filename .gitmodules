@@ -1,45 +1,45 @@
 [submodule "CMakeConfigs"]
 	path = CMakeConfigs
 	url = https://github.com/SimonBolducBeaudoin/CMakeConfigs.git
-	branch = main
+	branch = devel
 	update = rebase
 [submodule "Omp_extra"]
 	path = SBB/Omp_extra
 	url = https://github.com/SimonBolducBeaudoin/Omp_extra.git
-	branch = master
+	branch = devel
 	update = rebase
 [submodule "AutoCorr"]
 	path = SBB/AutoCorr
 	url = https://github.com/SimonBolducBeaudoin/AutoCorr.git
-	branch = main
+	branch = devel
 	update = rebase
 [submodule "Histograms"]
 	path = SBB/Histograms
 	url = https://github.com/SimonBolducBeaudoin/Histograms.git
-	branch = master
+	branch = devel
 	update = rebase
 [submodule "Math_extra"]
 	path = SBB/Math_extra
 	url = https://github.com/SimonBolducBeaudoin/Math_extra.git
-	branch = master
+	branch = devel
 	update = rebase
 [submodule "Time_quadratures"]
 	path = SBB/Time_quadratures
 	url = https://github.com/SimonBolducBeaudoin/Time_quadratures.git
-	branch = master
+	branch = devel
 	update = rebase
 [submodule "Multi_array"]
 	path = SBB/Multi_array
 	url = https://github.com/SimonBolducBeaudoin/Multi_array.git
-	branch = master
+	branch = devel
 	update = rebase
 [submodule "FFT_CUDA"]
 	path = SBB/FFT/FFT_CUDA
 	url = https://github.com/SimonBolducBeaudoin/FFT_CUDA.git
-	branch = main
+	branch = devel
 	update = rebase
 [submodule "FFTW_extra"]
 	path = SBB/FFT/FFTW_extra
 	url = https://github.com/SimonBolducBeaudoin/FFTW_extra.git
-	branch = master
+	branch = devel
 	update = rebase
