@@ -45,8 +45,10 @@ They are place in ../Cpp a repository parallel to SBB/
         - cmake --build build/
         - cmake --install build/
     - Crosscompiling to for windows (Cygwin)
-        Pass the toolchain to cmake to build the project (the rest is the same).
+		Pass the toolchain to cmake to build the project (the rest is the same).
         - cmake -S . -B ./build -DCMAKE_TOOLCHAIN_FILE=../mingw_toolchain.cmake
+		- cmake --build build/
+		- cmake --install build/
     
 # Removing the build directory
     cmake doesn't offer a built-in solution. 
