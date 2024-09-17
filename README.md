@@ -41,15 +41,13 @@ They are place in ../Cpp a repository parallel to SBB/
 # Building, compiling and Installing
     - Edit config.cmake for your machine (If you are compiling in a different envionnment than your python installation) so that pybind11 can be detected and used.
     - Unix environnment
-        - cmake -S . -B ./build
-        - cmake --build build/
-        - cmake --install build/
+		- cmake -S . -B ./build && cmake --build build/ && cmake --install build/
     - Crosscompiling to for windows (Cygwin)
 		Pass the toolchain to cmake to build the project (the rest is the same).
-        - cmake -S . -B ./build -DCMAKE_TOOLCHAIN_FILE=../mingw_toolchain.cmake
-		- cmake --build build/
-		- cmake --install build/
+        - cmake -S . -B ./build -DCMAKE_TOOLCHAIN_FILE=./CMakeConfigs/mingw_toolchain.cmake && cmake --build build/ && cmake --install build/
     
+	
+	
 # Removing the build directory
     cmake doesn't offer a built-in solution. 
     Best solution is to use rm.
