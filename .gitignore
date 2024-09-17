@@ -57,3 +57,4 @@ dist/
 SBB/AutoCorr/acorrs_otf.py
 
 build_msvc/
+__pycache__/
