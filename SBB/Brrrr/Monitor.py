@@ -52,7 +52,7 @@ class LogAndRun(_FSEH):
         self.observer = _Observer()
         self.observer.schedule(self, self.dir, recursive=True)
         self.observer.start()
-        print("Monitoring directory : {}".format(self.monitored_dir))
+        print(("Monitoring directory : {}".format(self.monitored_dir)))
         if silent:
             _log.info("SILENT MODE ON. NO OUTPUT DISPLAYED.")
         
@@ -64,7 +64,7 @@ class LogAndRun(_FSEH):
         if event.is_directory: # Do Nothing for directory changes
             pass
         elif event.event_type in ['modified', 'created'] and event.src_path.endswith(self.ext):
-            print("File {} created or modified.".format(event.src_path))
+            print(("File {} created or modified.".format(event.src_path)))
             for cmd in self.commands:
                 if self.silent:
                     cmd += " > " + _os.devnull + " 2>&1"

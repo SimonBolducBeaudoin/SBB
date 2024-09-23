@@ -203,7 +203,7 @@ class logger(object):
         for i in range(self.logger_indent) :
             ss += '\t'
         self.log_txt += ss + s +'\n'   
-        print(ss + s)
+        print((ss + s))
     def open(self):
         self._experiment.tic()
         for i in range(len(self._loop_sizes)-1):
@@ -253,7 +253,7 @@ class logger(object):
         s_tuple += ')'
         self._print(s_tuple + '\t' + s)
     def history(self):
-        print(self.log_txt)
+        print((self.log_txt))
     def save(self,path=None,filename='log',extension='.txt',time_stamp=False,prefix=''): 
         filename   += prefix
         time_stamp = '_' + _time.strftime('%y%m%d-%H%M%S') if time_stamp else ''
@@ -280,7 +280,7 @@ class ExperimentWarnings(Warning):
         self = cls(*arg,**kwargs)
         s = str(self)
         name = cls.__name__
-        print(name + ' : \n' + s)
+        print((name + ' : \n' + s))
         return self
 
 class LoadingWarning(ExperimentWarnings):
@@ -387,7 +387,7 @@ class Accretion(object):
     """
     @classmethod
     def description(cls):
-        print(cls.__doc__)
+        print((cls.__doc__))
     def __init__(self, exp):
         self.exp = exp
     #############
@@ -416,7 +416,7 @@ class Accretion(object):
         to_save                     = self._data
         to_save['_versions_saved']  = __SBB_version__
         _np.savez_compressed(_os.path.join(path_save,filename),**to_save)
-        print("Data saved \n \t folder : {} \n \t {}".format(path_save,filename) )
+        print(("Data saved \n \t folder : {} \n \t {}".format(path_save,filename) ))
     def _load_data_dict(self,data_dict):
         dict_to_attr(self,data_dict)
         self._data  = data_dict
@@ -453,7 +453,7 @@ class Analysis(Info):
     """
     @classmethod
     def description(cls):
-        print(cls.__doc__)
+        print((cls.__doc__))
     def __init__(self,conditions,data_dict,meta_info=None,**options):
         """
             - conditions    : example == (n_measures, nd_array_core_loop_cnds) 
@@ -516,7 +516,7 @@ class Analysis(Info):
             extension += '.ignore' if ignore else ''
             filename = prefix+'{}'.format(time_stamp) + extension
             _np.savez_compressed(_os.path.join(path_save,filename),**to_save)
-            print("Data saved \n \t folder : {} \n \t {}".format(path_save,filename))
+            print(("Data saved \n \t folder : {} \n \t {}".format(path_save,filename)))
         elif ((format=='npy') or (format=='save') or (format=='uncompressed') or (format=='.npy')) :
             # allows memory mapping (more efficient for huge arrays)
             extension = '.npy'
@@ -524,13 +524,13 @@ class Analysis(Info):
             for key in to_save:
                 filename = key+'_{}'.format(time_stamp) + extension
                 _np.save(_os.path.join(path_save,filename),to_save[key],allow_pickle=True,fix_imports=True)
-                print("Data saved \n \t folder : {} \n \t {}".format(path_save,filename))
+                print(("Data saved \n \t folder : {} \n \t {}".format(path_save,filename)))
         else : # format=='zip'
             extension = '.npz'
             extension += '.ignore' if ignore else ''
             filename = prefix+'{}'.format(time_stamp) + extension
             _np.savez(_os.path.join(path_save,filename),**to_save)
-            print("Data saved \n \t folder : {} \n \t {}".format(path_save,filename))
+            print(("Data saved \n \t folder : {} \n \t {}".format(path_save,filename)))
     def _load_data_dict(self,data_dict):
         dict_to_attr(self,data_dict)
         self._data  = data_dict

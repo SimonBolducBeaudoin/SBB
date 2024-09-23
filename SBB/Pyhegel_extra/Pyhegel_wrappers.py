@@ -62,13 +62,13 @@ class Dummy(Pyhegel_wrapper):
     def get_pyhegel_instance(self):
         print("get_pyhegel_instance")
     def set_init_state(self,val):
-        print("set_init_state :{}".format(val))
+        print(("set_init_state :{}".format(val)))
     def set_close_state(self):
         print("set_close_state")
     def get(self):
         print("get")
     def set(self,val):
-        print("set :{}".format(val))
+        print(("set :{}".format(val)))
 
 class Lakeshore_wrapper(Pyhegel_wrapper):
     """ 
@@ -116,7 +116,7 @@ class Lakeshore_wrapper(Pyhegel_wrapper):
             self._lakeshore =  instruments.lakeshore_370(visa_addr)
             self.set_current_ch(6) # The 6th channel is the temperature of the sample
         if self._verbose :
-            print("Current channel is : {} \n and has temperature = {} K".format( self._lakeshore.current_ch.get(), self.get_temperature()))
+            print(("Current channel is : {} \n and has temperature = {} K".format( self._lakeshore.current_ch.get(), self.get_temperature())))
     #############
     # User interface #
     #############
@@ -196,7 +196,7 @@ class Lakeshore_wrapper(Pyhegel_wrapper):
             pass
         else :
             if (self._verbose or verbose) :
-                print("Stabilizing to {}[K]".format(T))
+                print(("Stabilizing to {}[K]".format(T)))
             try :
                 if T > self._temperature_range[0] :
                     self._getout_tunder(verbose)
@@ -297,19 +297,19 @@ class Dmm_wrapper(Pyhegel_wrapper):
         self._debug  = options.get('debug')
     def get(self):
         if self._debug :
-            print "get Dmm : {:0.2f}[V]".format(self._V_dummy)
+            print("get Dmm : {:0.2f}[V]".format(self._V_dummy))
             return self._V_dummy
         else :
             return get(self._dmm)
 
     def set_aperture(self,val=None):
         if self._debug :
-            print "set Dmm aperture : {}".format(val)
+            print("set Dmm aperture : {}".format(val))
         else :
             set(self._dmm.aperture, val)
     def set_zero(self,booleen=True):
         if self._debug :
-            print "set Dmm zero : {}".format(booleen)
+            print("set Dmm zero : {}".format(booleen))
         else :
             set(self._dmm.zero, booleen)
         
@@ -339,24 +339,24 @@ class Yoko_wrapper(Pyhegel_wrapper):
         self._debug  = options.get('debug')
     def get(self):
         if self._debug :
-            print("get Yoko : {:0.2f}[V]".format(self._V_dummy))
+            print(("get Yoko : {:0.2f}[V]".format(self._V_dummy)))
             return self._V_dummy
         else :
             return get(self._yoko)
     def set(self,V):
         if self._debug :
             self._V_dummy = V
-            print("set Yoko : {:0.2f}[V]".format(V))
+            print(("set Yoko : {:0.2f}[V]".format(V)))
         else :
             set(self._yoko,V)
     def set_output(self,booleen):
         if self._debug :
-            print("set Yoko outpout : {}".format(booleen))
+            print(("set Yoko outpout : {}".format(booleen)))
         else :
             set(self._yoko.output_en, booleen)
     def set_range(self,val):
         if self._debug :
-            print("set Yoko range : {}".format(val))
+            print(("set Yoko range : {}".format(val)))
         else :
             set(self._yoko.range,val)
     """
@@ -627,12 +627,12 @@ class PSG_wrapper(Pyhegel_wrapper):
             return (f,dbm)
     def set_freq(self,f):
         if self._debug :
-            print("set PSG : {:0.2f}[GHz]".format(f*1.e-9))
+            print(("set PSG : {:0.2f}[GHz]".format(f*1.e-9)))
         else :
             set(self._psg.freq_cw,f)
     def set_ampl(self,dBm):
         if self._debug :
-            print("set PSG : {:0.2f}[dBm]".format(dBm))
+            print(("set PSG : {:0.2f}[dBm]".format(dBm)))
         else :
             set(self._psg.ampl,dBm)           
     def set_output(self,booleen):
