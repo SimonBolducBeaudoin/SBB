@@ -37,7 +37,7 @@ def super_enumerate(*args):
     index_vec = ()
     for a in args :
         l = len(a)
-        index_vec += ( range(l) , )
+        index_vec += ( list(range(l)) , )
         
     it_idx = _ittools.product(*index_vec) 
     it = _ittools.product(*args)

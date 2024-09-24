@@ -3,7 +3,7 @@
 
 def yes_or_no(question,default_ans='y'):
     while "the answer is invalid":
-        reply = str(raw_input(question+' (y/n):').encode('utf-8')).lower().strip() or default_ans
+        reply = str(input(question+' (y/n):').encode('utf-8')).lower().strip() or default_ans
         if reply[:1] == 'y':
             return True
         elif reply[:1] == 'n':

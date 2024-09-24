@@ -779,7 +779,7 @@ class Experiment(Analysis):
             return iter(()) , iter(())
         index_vec = ()
         for a in args :
-            index_vec += ( range(len(a)) , )
+            index_vec += ( list(range(len(a))) , )
         return _itertools.product(*index_vec) , _itertools.product(*args)
     def _set_all_devices(self,conditions):
         """
@@ -807,7 +807,7 @@ class Experiment(Analysis):
     def _all_loop_open(self):
         self._log.open()
     def _repetition_loop_iterator(self):
-        return range(self._compute_n_measure())
+        return list(range(self._compute_n_measure()))
     def _repetition_loop_start(self,n):
         self._log.loop(0,n) 
     def _core_loop_iterator(self):
@@ -994,7 +994,7 @@ class Cross_Patern_Lagging_computation(Lagging_computation):
         def gen_idxs(self):
             index_vec = tuple()
             for a in self.cndtns :
-                index_vec += ( range(len(a)) , )
+                index_vec += ( list(range(len(a))) , )
             return index_vec    
         def __next__(self):
             self.current_dim    = self.next_dim

@@ -89,7 +89,7 @@ def sort_A_acording_to_B(A_list,B_list):
     S = [ _np.unique(_np.concatenate([v[n] for v in B_list]),return_index=True) for n in range(n_dim_cdn) ]
     # get the sorted B for each dimension
     B   = [ s[0] for s in S ] 
-    A   = [ (_np.concatenate([v[n] for v in A_list])[s[1]] ) for n,s in zip(range(n_dim_cdn),S) ]
+    A   = [ (_np.concatenate([v[n] for v in A_list])[s[1]] ) for n,s in zip(list(range(n_dim_cdn)),S) ]
     return A,B
     
 def combine_arrays(S_list,V_list,remove_nans=True,remove_zeros=False):
