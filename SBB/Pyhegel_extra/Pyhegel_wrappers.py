@@ -297,19 +297,19 @@ class Dmm_wrapper(Pyhegel_wrapper):
         self._debug  = options.get('debug')
     def get(self):
         if self._debug :
-            print("get Dmm : {:0.2f}[V]".format(self._V_dummy))
+            print(("get Dmm : {:0.2f}[V]".format(self._V_dummy)))
             return self._V_dummy
         else :
             return get(self._dmm)
 
     def set_aperture(self,val=None):
         if self._debug :
-            print("set Dmm aperture : {}".format(val))
+            print(("set Dmm aperture : {}".format(val)))
         else :
             set(self._dmm.aperture, val)
     def set_zero(self,booleen=True):
         if self._debug :
-            print("set Dmm zero : {}".format(booleen))
+            print(("set Dmm zero : {}".format(booleen)))
         else :
             set(self._dmm.zero, booleen)
         
