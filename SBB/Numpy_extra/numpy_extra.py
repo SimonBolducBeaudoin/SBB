@@ -14,7 +14,7 @@ def get_index(Xs,x):
     return False if tmp.size==0 else tmp[0]
 
 def find_nearest_A_to_a(a,A):
-    a = _np.array([a]) if type(a)==float else _np.array(a)
+    a = _np.array([a]) if isinstance(a, float) else _np.array(a)
     A = _np.array(A)
     a_shape = a.shape
     a       = a.flatten()

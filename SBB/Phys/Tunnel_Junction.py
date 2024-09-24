@@ -344,7 +344,7 @@ def SII_of_f(freq,Idc,Iac=0.,F=0.,Te=0.050,R=50.0,nBessel=21):
     nu    = _C.e*Idc*R/_C.hbar
     nuac  = _C.e*Iac*R/_C.hbar
     
-    if ( ( type(Iac) != _np.ndarray) and ( Iac==0.0 ) ) or ( ( type(F) != _np.ndarray) and ( F==0.0 ) ) :
+    if ( ( not isinstance(Iac, _np.ndarray)) and ( Iac==0.0 ) ) or ( ( not isinstance(F, _np.ndarray)) and ( F==0.0 ) ) :
         return Sdc_of_f(omega,nu,Te,R)
     else :
         z = nuac/Omega
@@ -509,7 +509,7 @@ def dn2_beta(freq,beta,Idc,Iac=0.,F=0.,Te=0.050,R=50.0,nBessel=21):
     
     """
     n = n_beta(freq,beta,Idc,Iac=0.,F=0.,Te=0.050,R=50.0,nBessel=21)
-    if ( ( type(Iac) != _np.ndarray) and ( Iac==0.0 ) ) or ( ( type(F) != _np.ndarray) and ( F==0.0 ) ) :
+    if ( ( not isinstance(Iac, _np.ndarray)) and ( Iac==0.0 ) ) or ( ( not isinstance(F, _np.ndarray)) and ( F==0.0 ) ) :
         return n*(n+1.0)
     else :
         # Sprectum folding factor, 0.5, included (i.e. SII theory are usually integrated over the full spectrum).

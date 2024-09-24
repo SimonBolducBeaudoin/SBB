@@ -345,7 +345,7 @@ class Info(object):
         # Force mutability
         # This could be better manage using type hinting in the constructor
         self._conditions                = list(conditions)
-        if type(conditions[0]) != int :
+        if not isinstance(conditions[0], int) :
             raise ConditionsError('n_measures should be int')
         self._n_measures                = conditions[0]         # The first element of the tuple is the number of repetions
         try :

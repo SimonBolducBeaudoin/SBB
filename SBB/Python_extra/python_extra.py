@@ -6,7 +6,7 @@ import numpy as _np
 
 def formated_tuple(frmt='{:0.2f}',T=tuple()):
     s = ''
-    T = _np.array([T]) if (type(T)==float or type(T) == _np.float64) else T 
+    T = _np.array([T]) if (isinstance(T, float) or isinstance(T, _np.float64)) else T 
     for t in T :
         s += frmt.format(t)
         s += ', '
