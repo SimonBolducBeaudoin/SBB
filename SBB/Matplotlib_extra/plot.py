@@ -107,12 +107,12 @@ def scope_update(ax,x,y,line_idx=0,option=None) :
     """
     if option == 'Stack' : # adds a lines each time the function is called
         pc  =  ax._get_lines.prop_cycler
-        line = matplotlib.lines.Line2D( x,y, **pc.next() )
+        line = matplotlib.lines.Line2D( x,y, **next(pc) )
         ax.add_line(line)
     elif option == 'keep_first' :
         if len(ax.lines) <= 1 :
             pc  =  ax._get_lines.prop_cycler
-            line = matplotlib.lines.Line2D( x,y, **pc.next() )
+            line = matplotlib.lines.Line2D( x,y, **next(pc) )
             ax.add_line(line)
         else :
             ax.lines[1].set_data(x,y)

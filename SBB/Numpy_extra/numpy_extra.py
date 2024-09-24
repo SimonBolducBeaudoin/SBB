@@ -76,11 +76,6 @@ class sub_flatiter(object) :
         self.j_max      = self.flat_shape[0] - 1
     def __iter__(self):
         return self
-    def next(self):
-        """
-        For python 2 compatibility
-        """
-        return self.__next__()
     def __next__(self):
         if (self.j >= self.j_max ) :
             raise StopIteration

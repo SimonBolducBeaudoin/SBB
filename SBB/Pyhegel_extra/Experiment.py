@@ -917,7 +917,7 @@ class Lagging_computation(Experiment):
         pass
     def _repetition_loop_start(self,n,condition_it):
         super(Lagging_computation,self)._repetition_loop_start(n)
-        self._first_conditions = condition_it.next()
+        self._first_conditions = next(condition_it)
         self._log.events_print(self._first_conditions)
         self._set_and_wait_all_devices(self._first_conditions)
     def _last_loop_core_iteration(self):
@@ -1015,12 +1015,6 @@ class Cross_Patern_Lagging_computation(Lagging_computation):
                 else :
                     cndtn +=(c[self.ref_idxs[i]],)
             return cndtn
-        def next(self):
-            """
-                For compatibility with python 2 iterators
-                see : https://stackoverflow.com/questions/5982817/problems-using-next-method-in-python
-            """
-            return self.__next__()
     
     class core_iterator(object):
         """
@@ -1033,15 +1027,9 @@ class Cross_Patern_Lagging_computation(Lagging_computation):
             return self    
         def __next__(self):
             try :
-                return self.idx_it.next() , self.cdn_it.next()
+                return next(self.idx_it) , next(self.cdn_it)
             except StopIteration :
                 raise StopIteration
-        def next(self):
-            """
-                For compatibility with python 2 iterators
-                see : https://stackoverflow.com/questions/5982817/problems-using-next-method-in-python
-            """
-            return self.__next__()
     
     def _core_loop_iterator(self):
         it     = self.cross_enumerate(*self._conditions_core_loop_raw,ref_idxs=self._ref_idxs)
