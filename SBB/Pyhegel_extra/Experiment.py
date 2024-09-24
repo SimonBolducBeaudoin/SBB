@@ -340,7 +340,7 @@ class Info(object):
     def _set_options(self,options):
         self._options                   = options
         self._verbose                   = options.get('verbose')
-        self._test                      = options['test']    if options.has_key('test') else True 
+        self._test                      = options['test']    if 'test' in options else True 
     def _set_conditions(self,conditions):
         # Force mutability
         # This could be better manage using type hinting in the constructor
@@ -363,7 +363,7 @@ class Info(object):
         self.n_measures                 = self.get_n_measures() # Public copy of _n_measure
     def _set_meta_info(self,meta_info):
         self._meta_info                 = meta_info
-        self._meta_info['repetitions']  = meta_info['repetitions'] if meta_info.has_key('repetitions') else 0
+        self._meta_info['repetitions']  = meta_info['repetitions'] if 'repetitions' in meta_info else 0
     def _build_attributes(self):
         pass
     def get_conditions(self):
@@ -708,7 +708,7 @@ class Experiment(Analysis):
         self._INIT_log()
     def _set_options(self,options):
         super(Experiment,self)._set_options(options)
-        self._data_from_experiment  = not(options['loading_data']) if options.has_key('loading_data') else True
+        self._data_from_experiment  = not(options['loading_data']) if 'loading_data' in options else True
         self._save_path             = options.get('save_path',_os.getcwd())
         self._n_mod                 = options.get('n_mod',1)
         self._save_log              = options.get('save_log',True)
@@ -947,7 +947,7 @@ class Cross_Patern_Lagging_computation(Lagging_computation):
     """
     
     def _build_attributes(self):
-        self._ref_idxs = self._meta_info['ref_idxs'] if self._meta_info.has_key('ref_idxs') else _np.zeros((len(self._conditions_core_loop_raw),),dtype=int)
+        self._ref_idxs = self._meta_info['ref_idxs'] if 'ref_idxs' in self._meta_info else _np.zeros((len(self._conditions_core_loop_raw),),dtype=int)
     
     class cross_enumerate(object):
         """
@@ -977,7 +977,7 @@ class Cross_Patern_Lagging_computation(Lagging_computation):
                 self.dim             = len(args)
             except :
                 raise Exception("Bad initialization")
-            self.ref_idxs = _np.r_[kwargs['ref_idxs']].astype(int) if kwargs.has_key('ref_idxs') else _np.zeros((self.dim,),dtype=int)
+            self.ref_idxs = _np.r_[kwargs['ref_idxs']].astype(int) if 'ref_idxs' in kwargs else _np.zeros((self.dim,),dtype=int)
             try :
                 if self.ref_idxs.shape != (self.dim,):
                     raise Exception
