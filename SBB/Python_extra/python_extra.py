@@ -41,7 +41,7 @@ def super_enumerate(*args):
         
     it_idx = _ittools.product(*index_vec) 
     it = _ittools.product(*args)
-    return zip( *(it_idx,it) )
+    return list(zip( *(it_idx,it) ))
     
 def clean_function_source(func):
     """
