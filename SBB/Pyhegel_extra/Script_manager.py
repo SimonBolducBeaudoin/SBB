@@ -16,5 +16,5 @@ def Copy_script(path_original,path_copy):
                 out.write(line)
                     
 def save_all_scripts(paths,scripts) :
-    for key,value in scripts.items():
+    for key,value in list(scripts.items()):
         Copy_script( paths['scripts']+os.sep+value , paths['saves']+os.sep+key+'.py')

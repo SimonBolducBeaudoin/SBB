@@ -231,7 +231,7 @@ class Conditions_logic(object):
 
 def _gen_dict_helper(d):
     out = dict()
-    for k,i in d.items():
+    for k,i in list(d.items()):
         if i is not None:
             out.update({k:i})
     return out

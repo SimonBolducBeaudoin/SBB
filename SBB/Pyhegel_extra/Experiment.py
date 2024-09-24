@@ -94,7 +94,7 @@ def combine_repetitions(list_npz,single_copy=['_conditions','_meta_info','_optio
         l_data.append(data)
 
     D = dict()
-    for k in l_data[0].keys():
+    for k in list(l_data[0].keys()):
         if k in single_copy :
             D[k] = l_data[0][k]
         else :
