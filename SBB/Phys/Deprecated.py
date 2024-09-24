@@ -1,7 +1,7 @@
 #!/bin/env/python
 #! -*- coding: utf-8 -*-
 
-from Tunnel_Junction import *
+from .Tunnel_Junction import *
 
 ######################
 # Photon experiments #
