@@ -4,7 +4,10 @@
 import  sys, os, platform
 import time
 
-def gen_exp_default_paths(exp_root="5-Experiments",exp_dir="Unkown",module="Local_Module"):   
+def gen_exp_default_paths(scripts_root="C:\\Projets\\Time_Domain_Optic\\Python3",exp_root="Experiments",exp_dir="Unknown",module="Local_Module"):
+    """
+    Helps to generate a paths dictionnary containing the info on the experiement's directory
+    """
     paths = \
     {
         '_experiments_root'     : exp_root,                         # Relative to python_scripts_root
@@ -13,7 +16,7 @@ def gen_exp_default_paths(exp_root="5-Experiments",exp_dir="Unkown",module="Loca
         '_test_dir'             : "TEST",                           # Relative experiments_root
         '_saves'                : time.strftime('%y%m%d-%H%M'),     # Relative to pwd/current_experiment 
     }
-    paths['python_scripts_root']= "C:\\Projets\\Time_Domain_Optic\\Python_2_7"
+    paths['python_scripts_root']= scripts_root
     paths['experiments_root']   = paths['python_scripts_root']  + os.sep + paths['_experiments_root']  
     paths['current_experiment'] = paths['experiments_root']     + os.sep + paths['_current_experiment']  
     paths['Local_Module']       = paths['current_experiment']   + os.sep + paths['_lib'] 
@@ -54,9 +57,5 @@ def set_exp_environment(paths,scripts=None,test=False):
 
 def add_Cygwin_mingw_to_path(mingw_path = 'C:\\cygwin64\\usr\\x86_64-w64-mingw32\\sys-root\\mingw\\bin' ):
     if os.name == 'nt':
-        if platform.python_version_tuple()[0]== '2' : #python 2
-            if ( mingw_path not in os.environ['PATH'] ) :
-                os.environ['PATH'] = mingw_path+os.path.pathsep+os.environ['PATH']
-        else : # python 3      
-            os.add_dll_directory("C:/cygwin64/usr/x86_64-w64-mingw32/sys-root/mingw/bin")
+        os.add_dll_directory(mingw_path)
         

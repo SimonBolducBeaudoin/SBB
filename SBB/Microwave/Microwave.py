@@ -1,6 +1,8 @@
 #!/bin/env/python
 #! -*- coding: utf-8 -*-
 
+from __future__ import division
+from past.utils import old_div
 import numpy as _np
 
 def gamma_to_Z(gamma,Z0=50.0):
@@ -8,16 +10,16 @@ def gamma_to_Z(gamma,Z0=50.0):
         Converts reflexion coefficient to impedance
         gamma = ZL - Z0 /  ZL + Z0*
     """
-    return Z0*(gamma+1.0)/(1.0-gamma)
+    return old_div(Z0*(gamma+1.0),(1.0-gamma))
     
 def Z_to_gamma(Z,Z0=50.0):
-    return (Z-Z0)/(Z+Z0)
+    return old_div((Z-Z0),(Z+Z0))
     
 def dB_to_V2_over_V1(dB,R2,R1=50.0):
     """
     V2/V1  = 10**(dBm/20) sqrt(R2/R1)
     """
-    return _np.sqrt(R2/R1)*10.0**(dB/20.0)
+    return _np.sqrt(old_div(R2,R1))*10.0**(dB/20.0)
     
 def dBm_to_V(dBm,R2,R1=50.0):
     """

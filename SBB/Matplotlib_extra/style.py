@@ -1,6 +1,8 @@
 #!/bin/env/python
 #! -*- coding: utf-8 -*-
 
+from __future__ import division
+from past.utils import old_div
 import matplotlib
 import matplotlib.pyplot as plt
 
@@ -14,7 +16,7 @@ def gen_cycler(**options):
 def trigger_style_0():
     ratio =1.62
     width = 14*1.5
-    matplotlib.rcParams['figure.figsize'] = [width,width/ratio]
+    matplotlib.rcParams['figure.figsize'] = [width,old_div(width,ratio)]
     matplotlib.rcParams['font.size'] = 20 
     matplotlib.rcParams['lines.linewidth'] = 3
     matplotlib.rcParams['lines.markersize'] = 15
@@ -23,7 +25,7 @@ def trigger_style_0():
 def trigger_style_1():
     ratio =1.62
     width = 14*0.75
-    matplotlib.rcParams['figure.figsize'] = [width,width/ratio]
+    matplotlib.rcParams['figure.figsize'] = [width,old_div(width,ratio)]
     matplotlib.rcParams['font.size'] = 20 
     matplotlib.rcParams['lines.linewidth'] = 3
     matplotlib.rcParams['lines.markersize'] = 15
@@ -32,7 +34,7 @@ def trigger_style_1():
 def trigger_style_2():
     ratio =1.62
     width = 14*1.5
-    matplotlib.rcParams['figure.figsize'] = [width,width/ratio]
+    matplotlib.rcParams['figure.figsize'] = [width,old_div(width,ratio)]
     matplotlib.rcParams['font.size'] = 30 
     matplotlib.rcParams['lines.linewidth'] = 3
     matplotlib.rcParams['lines.markersize'] = 15
@@ -89,15 +91,15 @@ def trigger_PRL(w,h,**rc_kwargs):
 
 def trigger_PRL_single_col(ratio =1.62,**rc_kwargs):
     width = 3+3./8
-    trigger_PRL(width,width/ratio,**rc_kwargs)
+    trigger_PRL(width,old_div(width,ratio),**rc_kwargs)
     
 def trigger_PRL_1_5_col(ratio =1.62,**rc_kwargs):
     width = (3+3./8)*1.5
-    trigger_PRL(width,width/ratio,**rc_kwargs)
+    trigger_PRL(width,old_div(width,ratio),**rc_kwargs)
     
 def trigger_PRL_2_col(ratio =1.62,**rc_kwargs):
     width = (3+3./8)*2.0
-    trigger_PRL(width,width/ratio,**rc_kwargs)
+    trigger_PRL(width,old_div(width,ratio),**rc_kwargs)
  
 def trigger_default_style():
     trigger_style_0()

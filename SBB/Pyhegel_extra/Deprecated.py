@@ -1,6 +1,8 @@
 #!/bin/env/python
 #! -*- coding: utf-8 -*-
 
+from __future__ import division
+from past.utils import old_div
 import numpy
 from SBB.Pyhegel_extra.Experiment import logger,Experiment
 
@@ -108,13 +110,13 @@ class Three_points_polarisation(object):
         # self.R_grnd = R_grnd
     @staticmethod
     def compute_V_sample(Vdc,R_s,R_pol):
-        return Vdc*R_s/(R_pol+R_s)
+        return old_div(Vdc*R_s,(R_pol+R_s))
     @staticmethod
     def compute_V_yoko(V_s,R_s,R_pol):
-        return V_s*(R_pol+R_s)/R_s
+        return old_div(V_s*(R_pol+R_s),R_s)
     @staticmethod
     def compute_I_sample(Vdc,R_pol):
-        return Vdc/R_pol
+        return old_div(Vdc,R_pol)
 
 class Conditions_logic(object):
     """
@@ -238,7 +240,7 @@ def _gen_dict_helper(d):
 
 def gen_quads_info(l_kernel,kernel_conf=None,alpha=None,filters_info=None):
     l_kernel    = int(l_kernel)
-    l_hc        = l_kernel/2 + 1 
+    l_hc        = old_div(l_kernel,2) + 1 
     quads_info  = {'l_kernel':l_kernel,'l_hc':l_hc,'kernel_conf':kernel_conf,'alpha':alpha,'filters_info':filters_info}
     return _gen_dict_helper(quads_info)
  

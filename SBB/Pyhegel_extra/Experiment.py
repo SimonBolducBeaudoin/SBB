@@ -1,6 +1,8 @@
 #!/bin/env/python
 #! -*- coding: utf-8 -*-
 
+from __future__ import division
+from past.utils import old_div
 import time as _time
 import numpy as _np
 import itertools as _itertools
@@ -9,9 +11,9 @@ import os as _os
 from SBB.Python_extra.python_extra import mklist
 from SBB.Data_Manager.MergeArrays import remove_zeros_subarrays, remove_nan_subarrays
 
-import pkg_resources  # part of setuptools
-__SBB_version__ = {'SBB':pkg_resources.require("SBB")[0].version}
-del pkg_resources
+# import pkg_resources  # part of setuptools
+# __SBB_version__ = {'SBB':pkg_resources.require("SBB")[0].version}
+# del pkg_resources
 
 ####################
 #  Utilities #
@@ -239,7 +241,7 @@ class logger(object):
             if dur <= 0 :
                 s += 'Nan'
             else :
-                s += frmt.format(num/dur)
+                s += frmt.format(old_div(num,dur))
         return s     
     def events_print(self,condition_tuple):
         s = self._build_events_frmt()
