@@ -1,8 +1,6 @@
 #!/bin/env/python
 #! -*- coding: utf-8 -*-
 
-from __future__ import division
-from past.utils import old_div
 import numpy as _np
 from scipy.special import jv as _besselJ
 import scipy.constants as _C
@@ -40,9 +38,9 @@ def R_coulomb_block(I,Vo,D):
     tanh(x)/x when x = 0 ==> 1 
     """
     if I == 0.0:
-        return old_div(Vo,abs(D))
+        return Vo/abs(D)
     else :
-        return old_div(Vo*_np.tanh(old_div(I,abs(D))),I)
+        return Vo*_np.tanh(I/abs(D))/I
         
 #################################################################################
 @vectorize([float64(float64),float64(int64)])
@@ -52,7 +50,7 @@ def coth(x):
 # Optimizing this function helps a lot in the end.
 @vectorize([float64(float64),float64(int64)])
 def xcothx(x):
-    return old_div(x,_np.tanh(x)) if x!=0 else 1.0
+    return x/_np.tanh(x) if x!=0 else 1.0
 
 ################################################################
 
@@ -63,7 +61,7 @@ def Vsquare_to_K(SII,Z_jct):
     on prend le facteur 1/2K (i.e. l'abscisse n'existe pas sur les fréquence negative)
     Sinon on prend 1/4K
     """
-    return old_div(SII,(2.0*Z_jct*_kb))
+    return SII/(2.0*Z_jct*_kb)
 
 def K_to_Vsquare(SII,Z_jct):
     """ 
@@ -87,7 +85,7 @@ def Adimensional_to_Asquare(SII,Z_jct,Te):
     """
     Converts a SII with no unit to A**2/Hz
     """
-    return old_div((2.0*_kb*Te)*SII,Z_jct)
+    return (2.0*_kb*Te)*SII/Z_jct
 
 def V_th(f,Te=None,epsilon=0.01):
     """
@@ -101,14 +99,14 @@ def V_th(f,Te=None,epsilon=0.01):
     """
     if Te :
         cst = _np.arctanh(1.0/(1.0+epsilon)) # coth(cst) = 1.01
-        return old_div(_np.max(_np.array([  _np.abs( cst*2.0*_C.k *Te - _C.h*f ) ,  _np.abs( cst*2.0*_C.k*Te + _C.h*f ) ]),axis=0),_C.e)
+        return _np.max(_np.array([  _np.abs( cst*2.0*_C.k *Te - _C.h*f ) ,  _np.abs( cst*2.0*_C.k*Te + _C.h*f ) ]),axis=0)/_C.e
     else :
-        return old_div(_C.h*f,_C.e)
+        return _C.h*f/_C.e
 
 #####################################################################
 
 def compute_nu(V):
-    return old_div(_C.e*V,_C.hbar)
+    return _C.e*V/_C.hbar
     
 @vectorize([float64(float64,float64,float64)])
 def Seq_of_t(tau,Te,R):
@@ -132,9 +130,9 @@ def Seq_of_t(tau,Te,R):
     
     """
     if Te==0:
-        return old_div(old_div(-1.,tau**2)*_C.hbar,(_np.pi*R))
+        return -1./tau**2*_C.hbar/(_np.pi*R)
     else:
-        return old_div(-_np.pi*(_C.k*Te)**2,(R*_C.hbar))*1./(_np.sinh(old_div(_np.pi*_C.k*Te*tau,_C.hbar)))**2
+        return -_np.pi*(_C.k*Te)**2/(R*_C.hbar)*1./(_np.sinh(_np.pi*_C.k*Te*tau/_C.hbar))**2
 
 @vectorize([float64(float64,float64,float64,float64)])    
 def Sdc_of_t(tau,nu,Te,R):
@@ -194,7 +192,7 @@ def SPH_of_t(tau,nu,Te,R):
     Seq : float     [A^2]
     """
     if tau==0:
-        D = old_div(_np.pi*(_C.k*Te)**2,(3*_C.hbar*R))
+        D = _np.pi*(_C.k*Te)**2/(3*_C.hbar*R)
     else:
         D = Seq_of_t(tau,Te,R)-Seq_of_t(tau,0,R)
     return D*_np.cos(nu*tau)
@@ -225,9 +223,9 @@ def Seq_of_f(omega,Te,R):
     Thesis : Mesures temporelles large bande ..., Simoneau , equation # 7.48    
     """
     if Te==0:
-        return old_div(abs(_C.hbar*omega),R)
+        return abs(_C.hbar*omega)/R
     else:
-        return old_div(2*_C.k*Te,R) * xcothx(old_div(_C.hbar*omega,(2*_C.k*Te)))
+        return 2*_C.k*Te/R * xcothx(_C.hbar*omega/(2*_C.k*Te))
 #Seq_of_f = _MemMut(_np.vectorize(_Seq_of_f))
 
 @vectorize([float64(float64,float64,float64,float64)])   
@@ -253,7 +251,7 @@ def bessel_weights(n,z):
 def _Spa_of_f(omega,nu,nuac,Omega,Te,R,nBessel=21):
     if not nuac*Omega:
         return Sdc_of_f(omega,nu,Te,R)
-    z = old_div(nuac,Omega)
+    z = nuac/Omega
     nBessel -= nBessel%2-1    # Ensure it's odd
     Ns = _np.arange(-nBessel//2+1,nBessel//2+1)
     freqs = omega+Ns*Omega
@@ -266,7 +264,7 @@ Spa_of_f = _MemMut(_np.vectorize(_Spa_of_f))
 def _Sphi_of_f(phi,omega,nu,nuac,Omega,Te,R,nBessel=21):
     if phi is None or not nuac*Omega:
         return Spa(omega,nu,Te,nuac,Omega,R,nBessel=nBessel)
-    z = old_div(nuac,Omega)
+    z = nuac/Omega
     nBessel -= nBessel%2-1    # Ensure it's odd
     Ns = _np.arange(-nBessel//2+1,nBessel//2+1)
     freqs_m = -omega+Ns*Omega+nu
@@ -304,7 +302,7 @@ def _betap(p,f,nu,Te,nuac,Omega,R,nBessel=21):
         return Spa(omega,nu,Te,nuac,Omega,R,nBessel=nBessel)
     if not nuac*Omega:
         return 0
-    z = old_div(nuac,Omega)
+    z = nuac/Omega
     nBessel -= nBessel%2-1    # Ensure it's odd
     Ns = _np.arange(-nBessel//2+1,nBessel//2+1)
     freqs_m = -omega-Ns*Omega+nu
@@ -343,13 +341,13 @@ def SII_of_f(freq,Idc,Iac=0.,F=0.,Te=0.050,R=50.0,nBessel=21):
     """
     omega = 2*_np.pi*freq
     Omega = 2*_np.pi*F
-    nu    = old_div(_C.e*Idc*R,_C.hbar)
-    nuac  = old_div(_C.e*Iac*R,_C.hbar)
+    nu    = _C.e*Idc*R/_C.hbar
+    nuac  = _C.e*Iac*R/_C.hbar
     
     if ( ( not isinstance(Iac, _np.ndarray)) and ( Iac==0.0 ) ) or ( ( not isinstance(F, _np.ndarray)) and ( F==0.0 ) ) :
         return Sdc_of_f(omega,nu,Te,R)
     else :
-        z = old_div(nuac,Omega)
+        z = nuac/Omega
         nBessel -= nBessel%2-1    # Ensure it's odd
         Ns = _np.arange(-nBessel//2+1,nBessel//2+1)
         sum_shape =  ( len(Ns), ) + _np.broadcast(Idc,Iac,freq,F).shape
@@ -372,7 +370,7 @@ def _Spa_two_freq(omega,nu,nuac,Omega,Te,R,nBessel):
     
     """
     
-    z = old_div(nuac,Omega)
+    z = nuac/Omega
     nBessel -= nBessel%2-1    # Ensure it's odd
     Ns = _np.arange(-nBessel//2+1,nBessel//2+1)
     Sum = 0.
@@ -390,8 +388,8 @@ def SII_f1_f2(freq,Idc,Iac=0.,F=0.,Te=0.050,R=50.0,nBessel=21):
     """
     omega = 2*_np.pi*freq
     Omega = 2*_np.pi*F
-    nu    = old_div(_C.e*Idc*R,_C.hbar)
-    nuac  = old_div(_C.e*Iac*R,_C.hbar)
+    nu    = _C.e*Idc*R/_C.hbar
+    nuac  = _C.e*Iac*R/_C.hbar
     return Spa_two_freq(omega,nu,nuac,Omega,Te,R,nBessel)
        
 #import pdb
@@ -421,7 +419,7 @@ def C4_f1_f2_new(freq,beta,Idc,Iac=0.,F=0.,Te=0.050,R=50.0,nBessel=21,phase=None
     #pdb.set_trace()
     if phase is None :
         phase = 1.0 
-    n_f1f2 = old_div(phase*B*B2*(old_div(R,_C.h))*sii_f1_f2,_np.sqrt(_np.abs(freq*(F-freq)))) # has dimension of n2 but is not n2
+    n_f1f2 = phase*B*B2*(R/_C.h)*sii_f1_f2/_np.sqrt(_np.abs(freq*(F-freq))) # has dimension of n2 but is not n2
     
     df = freq[1]-freq[0]
     # Managing division by 0.
@@ -461,7 +459,7 @@ def C4_f1_f2_old(freq,beta,Idc,Iac=0.,F=0.,Te=0.050,R=50.0,nBessel=21):
                                # 0.25 ??? ou 0.0
     c4_f1f2[...,F_over2_idx] = 0.0  * c4_f1f2[...,F_over2_idx]
     
-    n2_tilde_f1f2 = old_div(((old_div(R,_C.h))**2)*c4_f1f2,_np.abs(freq*(F-freq))) # has dimension of n2 but is not n2
+    n2_tilde_f1f2 = ((R/_C.h)**2)*c4_f1f2/_np.abs(freq*(F-freq)) # has dimension of n2 but is not n2
     
     df = freq[1]-freq[0]
     # Managing division by 0.
@@ -498,7 +496,7 @@ def n_beta(freq,beta,Idc,Iac=0.,F=0.,Te=0.050,R=50.0,nBessel=21):
     df = freq[1]-freq[0]
     
     # Sprectum folding factor, 0.5, included (i.e. SII theory are usually integrated over the full spectrum).
-    n_of_f = old_div(0.5*R*SII,(_C.h * freq )) - 1./2. 
+    n_of_f = 0.5*R*SII/(_C.h * freq ) - 1./2. 
     # Managing division by 0.
     w = _np.where( (n_of_f == _np.inf) | (n_of_f == -_np.inf)  ) 
     n_of_f[w] = 0.0

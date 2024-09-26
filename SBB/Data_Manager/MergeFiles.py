@@ -25,6 +25,8 @@ def is_more_recent(dir1, dir2,prefix1='',prefix2='',ext1='.npz',ext2='.npz'):
     date1 = get_most_recent_date(dir1,prefix1,ext1)
     date2 = get_most_recent_date(dir2,prefix2, ext2)
     # Compare the most recent dates and return the result
+    if date2 is None :
+        date2=0
     return date1 > date2 
 
 def get_untreated_files(folder,pattern= 'exp_??????-??????.npz',ReDo=False,AddIgnore=True,LookForLonelyIgnore=True): 

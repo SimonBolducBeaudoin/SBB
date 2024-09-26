@@ -14,6 +14,7 @@ from SBB.Data_Manager.MergeArrays import remove_zeros_subarrays, remove_nan_suba
 # import pkg_resources  # part of setuptools
 # __SBB_version__ = {'SBB':pkg_resources.require("SBB")[0].version}
 # del pkg_resources
+__SBB_version__="0.0.0"
 
 ####################
 #  Utilities #
