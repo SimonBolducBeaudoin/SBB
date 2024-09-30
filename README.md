@@ -55,4 +55,9 @@ They are place in ../Cpp a repository parallel to SBB/
     
 #  Cleaning the compilation's output (equivalent to make clean)
     - cmake --build build/ --target clean
+    - find . -type f -name "*.pyd" -exec rm -f {} +
+    - find . -type f -name "*.dll.a" -exec rm -f {} +
+    - find . -type f -name "*.o" -exec rm -f {} +
+
+
  
