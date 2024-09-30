@@ -43,3 +43,8 @@
 	url = https://github.com/SimonBolducBeaudoin/FFTW_extra.git
 	branch = devel
 	update = rebase
+[submodule "DFT"]
+	path = SBB/FFT/DFT
+	url = https://github.com/SimonBolducBeaudoin/DFT.git
+	branch = devel
+	update = rebase
