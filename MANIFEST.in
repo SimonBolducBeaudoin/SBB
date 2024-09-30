@@ -1,5 +1,5 @@
-include SBB/AutoCorr/acorrs_wrapper.so
-include SBB/AutoCorr/acorrs_wrapper.pyd
+include SBB/AutoCorr/aCorrsOTF/acorrs_wrapper.so
+include SBB/AutoCorr/aCorrsOTF/acorrs_wrapper.pyd
 
 include SBB/Time_quadratures/time_quadratures.so
 include SBB/Time_quadratures/time_quadratures.pyd
@@ -9,3 +9,6 @@ include SBB/Histograms/histograms.pyd
 
 include SBB/Omp_extra/omp_extra.so
 include SBB/Omp_extra/omp_extra.pyd
+
+include SBB/FFT/FFTW_extra/fftw_extra.so
+include SBB/FFT/FFTW_extra/fftw_extra.pyd
