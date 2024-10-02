@@ -12,3 +12,6 @@ include SBB/Omp_extra/omp_extra.pyd
 
 include SBB/FFT/FFTW_extra/fftw_extra.so
 include SBB/FFT/FFTW_extra/fftw_extra.pyd
+
+include SBB/FFT/DFT/dft.so
+include SBB/FFT/DFT/dft.pyd
