@@ -60,3 +60,4 @@ build_msvc/
 __pycache__/
 *.bak
 .clang-format
+*.ignore
