@@ -26,7 +26,7 @@
 [submodule "Time_quadratures"]
 	path = SBB/Time_quadratures
 	url = https://github.com/SimonBolducBeaudoin/Time_quadratures.git
-	branch = devel
+	branch = Hist2D
 	update = rebase
 [submodule "Multi_array"]
 	path = SBB/Multi_array
