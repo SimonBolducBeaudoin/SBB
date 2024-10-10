@@ -62,7 +62,9 @@ They are place in ../Cpp a repository parallel to SBB/
   
 #  Beautify all  
     - find . -name '*.h' -o -name '*.cpp' -o -name '*.tpp' | xargs clang-format -i
-
+	- .clang-format 
+		IndentWidth: 4
+		ColumnLimit: 100
 
 
  
