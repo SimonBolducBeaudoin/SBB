@@ -64,7 +64,7 @@ They are place in ../Cpp a repository parallel to SBB/
     - find . -name '*.h' -o -name '*.cpp' -o -name '*.tpp' | xargs clang-format -i
 	- .clang-format 
 		IndentWidth: 4
-		ColumnLimit: 100
+		ColumnLimit: 120
 
 
  
