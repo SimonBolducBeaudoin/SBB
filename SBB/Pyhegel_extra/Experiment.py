@@ -512,7 +512,7 @@ class Analysis(Info):
         to_save                     = self._data
         to_save['SBB_version']      = __SBB_version__
         to_save['_options']         = self._options
-        to_save['_conditions']      = self._conditions
+        to_save['_conditions']      = _np.array( self._conditions, dtype=object ) 
         to_save['_meta_info']       = self._meta_info
         if ( (format=='compressed') or (format=='npz compressed') or (format=='.npz') or (format=='savez_compressed')):
             extension = '.npz'
