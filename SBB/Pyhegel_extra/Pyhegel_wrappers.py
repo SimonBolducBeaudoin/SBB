@@ -655,4 +655,66 @@ class PSG_wrapper(Pyhegel_wrapper):
         self.set_ampl(PSG_wrapper.default_ampl)
         self.set_output(PSG_wrapper.default_rf_en)
         
+colby = instruments.colby_pdl_100a('GPIB1::2::INSTR')
+set(colby.mode,'312.5PS')
+set(colby,156.25)
+
+class DelayLine_wrapper(Pyhegel_wrapper):
+    """
+        Todos :
+            - Implement basic behaviour
+    """
+    __version__ = {'DelayLine_wrapper':0.1}
+    __version__.update(Pyhegel_wrapper.__version__)
+    default_mode    = "312.5PS"
+    default_pos     =  156.25
+    
+    def __init__(self,visa_addr='GPIB1::2::INSTR',**options):
+        self._set_options(**options)
+        if self._debug :
+            self._delay       = None
+        else :
+            self._delay = instruments.colby_pdl_100a(visa_addr=visa_addr)
+            self.set_init_state()
+    def __del__(self):
+        self._set_options(**options)
+        if self._debug :
+            pass
+        else :
+            self.set_close_state()
+    """
+        Wrapper of existing behavior
+    """
+    def _set_options(self,**options):
+        self._debug  = options.get('debug')
+    def get(self):
+        if self._debug :
+            return DelayLine_wrapper.default_pos
+        else :
+            return get(self._delay)
+    def set(self,delay):
+        if self._debug :
+            print(("set Delay Line : {:0.2f}[ps]".format(delay)))
+        else :
+            set(self._delay,delay)
+    def set_mode(self,mode="312.5PS"):
+        """
+        Possible value to set: ('SER', 'PAR', '312.5PS', '625PS')
+        But I haven't tested SER and PAR
+        """
+        if self._debug :
+            print(("set Delay Line mode to : {}".format(mode)))
+        else :
+            set(self._delay.mode,mode)
+    def get_mode(self):
+        if self._debug :
+            print(("Delay Line mode to : {}".format(DelayLine_wrapper.mode)))
+            return DelayLine_wrapper.mode
+        else :
+            return get(self._delay.mode)
+    def set_init_state(self):
+        pass
+    def set_close_state(self):
+        pass
+        
         
