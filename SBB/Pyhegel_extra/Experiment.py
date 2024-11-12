@@ -7,6 +7,7 @@ import time as _time
 import numpy as _np
 import itertools as _itertools
 import os as _os
+import gc as _gc
 
 from SBB.Python_extra.python_extra import mklist
 from SBB.Data_Manager.MergeArrays import remove_zeros_subarrays, remove_nan_subarrays
@@ -709,6 +710,10 @@ class Experiment(Analysis):
         self._SET_devices(devices)
         self._INIT_objects()
         self._INIT_log()
+    
+    def __del__(self):
+        _gc.enable()
+    
     def _set_options(self,options):
         super(Experiment,self)._set_options(options)
         self._data_from_experiment  = not(options['loading_data']) if 'loading_data' in options else True
@@ -758,6 +763,7 @@ class Experiment(Analysis):
         """
         Reps        = n_repetitions if n_repetitions    else self._n_div
         save_path   = save_path     if save_path        else self._save_path
+        _gc.disable()
         for rep in range(Reps):
             self.reset_objects()                # this is done here so that ojbects are available for auscultation
             self._meta_info['repetitions'] += 1
@@ -770,6 +776,9 @@ class Experiment(Analysis):
                 log_prefix = save_prefix if log_inherits_prefix else ''
                 self._log.save(path=save_path,filename='log',time_stamp=True,prefix=log_prefix)
                 self._log.reset()
+            _gc.collect()
+        _gc.enable()
+
     #############
     # Utilities #
     #############
@@ -834,6 +843,7 @@ class Experiment(Analysis):
             for index_tuple, condition_tuple in zip(index_it,condition_it):
                 self._loop_core(index_tuple,condition_tuple)
             self._repetition_loop_end(n)
+            _gc.collect()
         self._all_loop_close()
     ######################
     # Reduction/Analysis #
