@@ -655,10 +655,6 @@ class PSG_wrapper(Pyhegel_wrapper):
         self.set_ampl(PSG_wrapper.default_ampl)
         self.set_output(PSG_wrapper.default_rf_en)
         
-colby = instruments.colby_pdl_100a('GPIB1::2::INSTR')
-set(colby.mode,'312.5PS')
-set(colby,156.25)
-
 class DelayLine_wrapper(Pyhegel_wrapper):
     """
         Todos :
