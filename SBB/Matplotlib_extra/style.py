@@ -47,7 +47,7 @@ def set_prl_rc_params(**kwargs):
     params = {
         'font.size' : 8,
         'font.family': 'serif',
-        'font.serif': ['CMU Serif',], # The font must be installed
+        #'font.serif': ['CMU Serif',], # The font must be installed
         #'text.usetex': True, # Better latex integration, only works if tex is installed
         'axes.labelsize': 6,
         'axes.titlesize': 10,
