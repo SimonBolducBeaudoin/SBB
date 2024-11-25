@@ -2,6 +2,7 @@
 #! -*- coding: utf-8 -*-
 
 import numpy as _np
+# In python 3 numba-scipy works fine with jv this allows to write better numba code "conda install -c numba numba-scipy " 
 from scipy.special import jv as _besselJ
 import scipy.constants as _C
 
