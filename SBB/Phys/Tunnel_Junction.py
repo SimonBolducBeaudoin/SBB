@@ -297,25 +297,27 @@ def Spa_adia_harm_drive(omega,nu,nuac_amplitude,Te,R,n_phi=1000):
     Nuac = nuac_amplitude[:,None]*_np.sin(phi)[None,:]
     return Spa_adiabatique(omega[...,None],phi,nu[...,None],Nuac,Te[...,None],R[...,None],phi_axis=-1)
 
-def _betap(p,f,nu,Te,nuac,Omega,R,nBessel=21):
-    omega = 2.0*_np.pi*f
-    if p==0:
-        return Spa(omega,nu,Te,nuac,Omega,R,nBessel=nBessel)
-    if not nuac*Omega:
-        return 0
+
+@vectorize(['float64(int64,float64,float64,float64,float64,float64,float64,int64)'],target="parallel")
+def _beta_p(p,omega,nu,Te,nuac,Omega,R,nBessel):
+    """
+    P.169 These JO
+    \beta_p(\omega) = 1/2 ( Sum n - inf to inf
+                            J_{n}(z)J_{n+p}(z)  ( Seq( \omega + n \Omega + \nu ) + (-1)^p Seq( -\omega - n \Omega + \nu ) )
+                          )
+    """
+    sign = -1 if p%2==1 else 1
     z = nuac/Omega
-    nBessel -= nBessel%2-1    # Ensure it's odd
-    Ns = _np.arange(-nBessel//2+1,nBessel//2+1)
-    freqs_m = -omega-Ns*Omega+nu
-    freqs_p = +omega+Ns*Omega+nu
+    res = 0.0
+    for n in range(nBessel,0,-1):
+        res+= _besselJ(float64( n),z)*_besselJ(float64( n+p),z) * ( Seq_of_f(omega+n*Omega+nu,Te,R) + sign*Seq_of_f(-omega-n*Omega+nu,Te,R) )
+        res+= _besselJ(float64(-n),z)*_besselJ(float64(-n+p),z) * ( Seq_of_f(omega-n*Omega+nu,Te,R) + sign*Seq_of_f(-omega+n*Omega+nu,Te,R) )
+    res += _besselJ(float64(0),z)*_besselJ(float64(p),z) * ( Seq_of_f(omega+nu,Te,R) + sign*Seq_of_f(-omega+nu,Te,R) )    
+    return 0.5*res
 
-    Sds_m = Seq(freqs_m,Te,R)*(-1.)**p
-    Sds_p = Seq(freqs_p,Te,R)
-
-    bessels = _besselJ(Ns,z)*_besselJ(Ns+p,z)
-    return _np.dot(bessels, (Sds_m+Sds_p)/2.)
-betap = _MemMut(_np.vectorize(_betap))
-
+def beta_p (p,omega,nu,Te,nuac,Omega,R,nBessel=21):
+    return _beta_p(p,omega,nu,Te,nuac,Omega,R,nBessel)
+ 
 def Xp(p,omega,nu,Te,nuac,Omega,R,nBessel=21):
     return betap(p,omega,nu,Te,nuac,Omega,R,nBessel=nBessel)+betap(-p,omega,nu,Te,nuac,Omega,R,nBessel=nBessel)
 
