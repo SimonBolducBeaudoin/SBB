@@ -135,6 +135,12 @@ def Seq_of_t(tau,Te,R):
     else:
         return -_np.pi*(_C.k*Te)**2/(R*_C.hbar)*1./(_np.sinh(_np.pi*_C.k*Te*tau/_C.hbar))**2
 
+@vectorize([float64(float64,float64,float64,float64,float64,float64,float64)])    
+def Sphi_tau(phi,tau,nu,nuac,Omega,Te,R):
+    z = nuac/Omega
+    return Seq_of_t(tau,Te,R)*_np.cos(z*( _np.sin(phi+Omega*tau)-_np.sin(phi) ) + nu*tau )
+    
+
 @vectorize([float64(float64,float64,float64,float64)])    
 def Sdc_of_t(tau,nu,Te,R):
     """
@@ -331,7 +337,6 @@ def Sqz(p,omega,nu,Te,nuac,Omega, R,nBessel=21):
 ######################
 # Photon experiments #
 ######################
-
 
 def SII_of_f(freq,Idc,Iac=0.,F=0.,Te=0.050,R=50.0,nBessel=21):
     """
