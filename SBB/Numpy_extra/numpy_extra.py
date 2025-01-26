@@ -338,3 +338,71 @@ def slice_axes(arr, slices_list):
     return eval(expression)
 
 
+def broadcast_func(x, y, func, n=0):
+    """
+    Broadcasts `x` and `y` and applies `func` over the last `n` dimensions.
+
+    Parameters:
+    - x: ndarray
+    - y: ndarray
+    - func: Callable that operates on two arrays of shape (*n_dims).
+    - n: int, number of trailing dimensions on which `func` is applied (default is 0).
+
+    Returns:
+    - Result of applying `func` over the broadcasted arrays.
+    
+    Examples:
+    1. Applying np.dot on two arrays:
+       ```python
+       def dot_func(a, b):
+           return np.dot(a, b)
+
+       x = np.random.rand(3, 4)
+       y = np.random.rand(4)
+       result = broadcast_func(x, y, dot_func, n=1)
+       print(result.shape)  # Output: (3,)
+       ```
+
+    2. Applying np.outer on two arrays:
+       ```python
+       def outer_func(a, b):
+           return np.outer(a, b)
+
+       x = np.random.rand(2)
+       y = np.random.rand(3)
+       result = broadcast_func(x, y, outer_func, n=1)
+       print(result.shape)  # Output: (2, 3)
+       ```
+    """
+    if n < 0:
+        raise ValueError("The parameter 'n' must be a non-negative integer.")
+
+    # Ensure the last `n` dimensions are compatible if n > 0
+    if n > 0 and x.shape[-n:] != y.shape[-n:]:
+        raise ValueError(f"The last {n} dimensions of x and y must match.")
+    
+    # Determine the broadcast shape for the leading dimensions
+    try:
+        broadcast_shape = _np.broadcast_shapes(x.shape[:-n], y.shape[:-n]) 
+    except ValueError:
+        raise ValueError("Input arrays cannot be broadcast along their leading dimensions.")
+    
+    # Expand x and y (not memory efficient)
+    x_broadcast = _np.broadcast_to(x, broadcast_shape + x.shape[-n:])
+    y_broadcast = _np.broadcast_to(y, broadcast_shape + y.shape[-n:])
+    
+    # Compute the first call to func
+    iterator = _np.ndindex(broadcast_shape)
+    first_lead_idx = next(iterator)
+    initial_result = func(x_broadcast[first_lead_idx], y_broadcast[first_lead_idx])
+    trailling_shape = tuple() if _np.isscalar(initial_result) else initial_result.shape
+    result_shape = broadcast_shape + trailling_shape
+    result = _np.empty(result_shape, dtype=initial_result.dtype)
+    
+    # Set the result for the first index separately
+    result[tuple(_np.zeros(len(broadcast_shape), dtype=int))] = initial_result
+
+    # Continue the iteration over the leading dimensions of the broadcasted arrays
+    for idx in iterator:
+        result[idx] = func(x_broadcast[idx], y_broadcast[idx])
+    return result
