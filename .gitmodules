@@ -48,3 +48,8 @@
 	url = https://github.com/SimonBolducBeaudoin/DFT.git
 	branch = devel
 	update = rebase
+[submodule "SBB/PyMoments"]
+	path = SBB/PyMoments
+	url = https://github.com/SimonBolducBeaudoin/PyMoments.git
+	branch = develop
+	update = rebase
